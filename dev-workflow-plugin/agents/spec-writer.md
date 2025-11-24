@@ -380,4 +380,4 @@ Every specification set must:
 - [ ] Include final commit task
 - [ ] List all files to be affected
 - [ ] Identify task dependencies
-- [ ] **Use relative paths only** - never use absolute paths like `/home/user/project/...`; always use paths relative to the current spec directory (e.g., `./01-requirements.md`, `../../dev-workflow-plugin/agents/code-reviewer.md`)
+- [ ] **Use relative paths only** - never use absolute paths like `/home/user/project/...`; always use paths relative to the current spec directory (e.g., `./01-requirements.md`)
