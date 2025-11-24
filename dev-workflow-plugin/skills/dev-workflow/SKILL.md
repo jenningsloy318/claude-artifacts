@@ -26,6 +26,7 @@ Copy this checklist to track progress:
 
 ```
 Development Workflow Progress:
+- [ ] Phase 0: Apply Dev Rules (establish coding standards)
 - [ ] Phase 1: Specification Setup (identify/create spec directory)
 - [ ] Phase 2: Requirements Clarification (gather requirements)
 - [ ] Phase 3: Research (best practices, docs, patterns)
@@ -40,6 +41,22 @@ Development Workflow Progress:
 - [ ] Phase 10: Cleanup (remove temp files, unused code)
 - [ ] Phase 11: Commit & Push (descriptive message)
 ```
+
+---
+
+## Phase 0: Apply Dev Rules
+
+**SKILL:** Invoke `dev-workflow:dev-rules`
+
+Before starting any development work, apply the development rules skill to establish:
+- Coding standards and philosophy
+- Git practices and commit guidelines
+- Quality standards and decision framework
+- Figma integration rules (if applicable)
+
+**Announce:** "I'm applying the dev-rules skill to ensure we follow project standards and best practices."
+
+This phase ensures all subsequent work follows consistent standards throughout the workflow.
 
 ---
 
@@ -313,12 +330,11 @@ Perform comprehensive cleanup:
 
 ## Phase 11: Commit & Push
 
-Upon completion of all tasks:
+Upon completion of all tasks, follow the git practices established in Phase 0:
 
-1. **Apply dev-rules**: Use `dev-workflow:dev-rules` for git practices
-2. **Stage only changed files**: `git add file1 file2` (no `git add -A`)
-3. **Create descriptive commit message**
-4. **Push to repository**
+1. **Stage only changed files**: `git add file1 file2` (no `git add -A`)
+2. **Create descriptive commit message**
+3. **Push to repository**
 
 ---
 
