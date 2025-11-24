@@ -1,0 +1,38 @@
+{
+  "name": "claude-artifacts",
+  "owner": {
+    "name": "Jennings L",
+    "email": "jennings@example.com",
+    "url": "https://github.com/jenningsloy318"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for session management, context persistence, and productivity tools",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "session-persistence",
+      "source": "./session-persistence-plugin",
+      "description": "Automatically summarize and persist Claude Code sessions before context compaction, with automatic context restoration on resume",
+      "version": "1.0.0",
+      "author": {
+        "name": "Jennings L",
+        "url": "https://github.com/jenningsloy318"
+      },
+      "homepage": "https://github.com/jenningsloy318/claude-artifacts",
+      "repository": "https://github.com/jenningsloy318/claude-artifacts",
+      "license": "MIT",
+      "keywords": [
+        "session",
+        "persistence",
+        "memory",
+        "context",
+        "compaction",
+        "summary",
+        "continuity"
+      ],
+      "category": "productivity",
+      "strict": false
+    }
+  ]
+}

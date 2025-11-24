@@ -13,21 +13,49 @@ Automatically summarize and persist Claude Code sessions before context compacti
 
 ## Installation
 
-### Option 1: Clone and Install (Recommended)
+### Option 1: Via Marketplace (Recommended)
+
+```bash
+# Add the marketplace
+claude plugin marketplace add jenningsloy318/claude-artifacts
+
+# Install the plugin
+claude plugin install session-persistence@claude-artifacts
+```
+
+### Option 2: Clone and Use with --plugin-dir
 
 ```bash
 # Clone the repository
-git clone https://github.com/jenningsl/session-persistence-plugin.git
+git clone https://github.com/jenningsloy318/claude-artifacts.git
+cd claude-artifacts
 
-# Install the plugin
-claude plugin install ./session-persistence-plugin
+# Run Claude Code with the plugin loaded
+claude --plugin-dir ./session-persistence-plugin
 ```
 
-### Option 2: Manual Installation
+### Option 3: Clone Plugin Only
+
+```bash
+# Clone the repository
+git clone https://github.com/jenningsloy318/claude-artifacts.git
+
+# Copy the plugin to your preferred location
+cp -r claude-artifacts/session-persistence-plugin ~/plugins/
+
+# Run Claude Code with the plugin
+claude --plugin-dir ~/plugins/session-persistence-plugin
+```
+
+### Option 4: Manual Installation
 
 Copy the contents to your Claude Code user directory:
 
 ```bash
+# Clone first
+git clone https://github.com/jenningsloy318/claude-artifacts.git
+cd claude-artifacts/session-persistence-plugin
+
 # Create directories
 mkdir -p ~/.claude/hooks
 mkdir -p ~/.claude/commands
@@ -63,7 +91,7 @@ Then add the following to your `~/.claude/settings.json`:
     ],
     "SessionStart": [
       {
-        "matcher": "*",
+        "matcher": "resume|compact",
         "hooks": [
           {
             "type": "command",
@@ -106,6 +134,25 @@ Add to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
 export CLAUDE_SUMMARY_API_KEY="your-api-key-here"
 # Optional: Custom API URL
 # export CLAUDE_SUMMARY_API_URL="https://your-proxy.example.com/v1"
+```
+
+## Quick Start
+
+```bash
+# Option A: Via marketplace (recommended)
+claude plugin marketplace add jenningsloy318/claude-artifacts
+claude plugin install session-persistence@claude-artifacts
+
+# Option B: Via --plugin-dir
+git clone https://github.com/jenningsloy318/claude-artifacts.git
+cd claude-artifacts
+claude --plugin-dir ./session-persistence-plugin
+```
+
+Then optionally set up LLM-based summaries:
+
+```bash
+export CLAUDE_SUMMARY_API_KEY="your-api-key"
 ```
 
 ## How It Works
@@ -187,9 +234,10 @@ Ask Claude naturally:
 
 ### Hook Not Triggering
 
-1. Verify hooks are in `~/.claude/hooks/`
-2. Check `~/.claude/settings.json` has correct hook configuration
-3. Ensure Python 3 is available: `which python3`
+1. Verify plugin is loaded: check Claude Code startup messages
+2. For manual install: verify hooks are in `~/.claude/hooks/`
+3. Check `~/.claude/settings.json` has correct hook configuration
+4. Ensure Python 3 is available: `which python3`
 
 ### No Summary Generated
 
@@ -203,13 +251,18 @@ Ask Claude naturally:
 2. Check anthropic package is installed: `pip show anthropic`
 3. Verify API key has appropriate permissions
 
+## Repository
+
+- **GitHub**: https://github.com/jenningsloy318/claude-artifacts
+- **Issues**: https://github.com/jenningsloy318/claude-artifacts/issues
+
 ## License
 
 MIT License - See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions welcome! Please open an issue or submit a pull request.
+Contributions welcome! Please open an issue or submit a pull request at https://github.com/jenningsloy318/claude-artifacts
 
 ## Changelog
 
