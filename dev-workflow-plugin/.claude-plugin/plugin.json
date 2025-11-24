@@ -1,0 +1,13 @@
+{
+  "name": "dev-workflow",
+  "description": "Comprehensive development workflow for implementing features, fixing bugs, and refactoring code with structured phases",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jennings L",
+    "email": "jennings@example.com"
+  },
+  "homepage": "https://github.com/jenningsloy318/claude-artifacts",
+  "repository": "https://github.com/jenningsloy318/claude-artifacts",
+  "license": "MIT",
+  "keywords": ["development", "workflow", "debugging", "implementation", "refactoring", "specification"]
+}
