@@ -41,23 +41,47 @@ Add to your Claude Code settings:
 
 ## Workflow Phases
 
-| Phase | Name | Skill | Description |
-|-------|------|-------|-------------|
-| 1 | Specification Setup | `dev-workflow` | Find or create spec directory |
-| 2 | Requirements Clarification | `requirements-clarifier` | Gather complete requirements |
-| 3 | Research | `research-phase` | Find best practices and documentation |
-| 4 | Debug Analysis | `debug-analyzer` | Root cause analysis (bugs only) |
-| 5 | Code Assessment | `code-assessor` | Evaluate existing codebase |
-| 6 | Specification Writing | `spec-writer` | Create tech spec, plan, tasks |
-| 7 | Specification Review | `dev-workflow` | Validate all documents |
-| 8-9 | Execution & Coordination | `execution-coordinator` | Implement with parallel agents |
-| 10 | Cleanup | `dev-workflow` | Remove temporary files |
-| 11 | Commit & Push | `dev-workflow` | Save changes to repository |
+| Phase | Name | Agent/Skill | Description |
+|-------|------|-------------|-------------|
+| 1 | Specification Setup | `dev-workflow` skill | Find or create spec directory |
+| 2 | Requirements Clarification | `requirements-clarifier` agent | Gather complete requirements |
+| 3 | Research | `research-agent` agent | Find best practices and documentation |
+| 4 | Debug Analysis | `debug-analyzer` agent | Root cause analysis (bugs only) |
+| 5 | Code Assessment | `code-assessor` agent | Evaluate existing codebase |
+| 6 | Specification Writing | `spec-writer` agent | Create tech spec, plan, tasks |
+| 7 | Specification Review | `dev-workflow` skill | Validate all documents |
+| 8-9 | Execution & Coordination | `execution-coordinator` agent | Implement with parallel agents |
+| 10 | Cleanup | `dev-workflow` skill | Remove temporary files |
+| 11 | Commit & Push | `dev-workflow` skill | Save changes to repository |
+
+## Architecture
+
+The plugin uses a **skill + agents** architecture:
+
+- **Skills** (`skills/`): Orchestration and rules
+- **Agents** (`agents/`): Specialized tasks invoked via Task tool
+
+```
+dev-workflow-plugin/
+├── skills/
+│   ├── dev-workflow/     # Main orchestrator skill
+│   └── dev-rules/        # Development rules and philosophy
+├── agents/
+│   ├── requirements-clarifier.md
+│   ├── research-agent.md
+│   ├── search-agent.md
+│   ├── debug-analyzer.md
+│   ├── code-assessor.md
+│   ├── spec-writer.md
+│   └── execution-coordinator.md
+└── commands/
+    └── fix-impl.md
+```
 
 ## Skills
 
 ### dev-workflow
-Main entry point skill that orchestrates all phases. Provides the overall workflow structure and phase transitions.
+Main entry point skill that orchestrates all phases. Invokes agents for each phase and manages workflow transitions.
 
 ### dev-rules
 Core development rules and standards including:
@@ -66,6 +90,8 @@ Core development rules and standards including:
 - Quality standards (testability, readability, consistency)
 - Decision framework priorities
 
+## Agents
+
 ### requirements-clarifier
 Gathers and documents complete requirements through structured questioning:
 - Problem statement analysis
@@ -73,11 +99,39 @@ Gathers and documents complete requirements through structured questioning:
 - Edge case identification
 - Constraint documentation
 
-### research-phase
-Research best practices and gather documentation:
+**Invoke:** `Task(subagent_type: "dev-workflow:requirements-clarifier")`
+
+### research-agent
+Conducts comprehensive research on best practices and documentation:
 - Library/framework documentation lookup
 - Similar implementation patterns
 - Best practices from official sources
+- Uses `search-agent` for intelligent retrieval
+
+**Invoke:** `Task(subagent_type: "dev-workflow:research-agent")`
+
+### search-agent
+Intelligent multi-source search with state-of-the-art retrieval:
+- **Query Expansion:** Generates 3-5 sub-queries for comprehensive coverage
+- **Multi-Source Retrieval:** Parallel search across Exa, Context7, DeepWiki, GitHub
+- **Re-ranking:** Confidence scoring with authority weighting
+- **Citation Tracking:** Provenance hash for audit and re-run
+- **Search Modes:** `code`, `docs`, `academic`, `web`, `all`
+
+**Interface:**
+```typescript
+search(query: string, context?: SearchContext) → SearchResult[]
+
+interface SearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+  confidence: number;  // 0-1 relevance score
+  provenance: { source, query, timestamp, hash };
+}
+```
+
+**Invoke:** `Task(subagent_type: "dev-workflow:search-agent")`
 
 ### debug-analyzer
 Systematic root cause analysis for bugs:
@@ -86,28 +140,36 @@ Systematic root cause analysis for bugs:
 - Hypothesis formation and verification
 - Root cause documentation
 
+**Invoke:** `Task(subagent_type: "dev-workflow:debug-analyzer")`
+
 ### code-assessor
-Evaluate existing codebase before making changes:
+Evaluates existing codebase before making changes:
 - Architecture evaluation
 - Code standards review
 - Dependency analysis
 - Framework pattern identification
 
+**Invoke:** `Task(subagent_type: "dev-workflow:code-assessor")`
+
 ### spec-writer
-Create comprehensive technical documentation:
+Creates comprehensive technical documentation:
 - Technical Specification
 - Implementation Plan
 - Task List
 
+**Invoke:** `Task(subagent_type: "dev-workflow:spec-writer")`
+
 ### execution-coordinator
-Coordinate parallel agents during implementation:
+Coordinates parallel agents during implementation:
 - Development Agent (code generation)
 - Testing Agent (validation)
 - Documentation Agent (tracking)
 
-## Specialist Agents Used
+**Invoke:** `Task(subagent_type: "dev-workflow:execution-coordinator")`
 
-The plugin leverages these specialist agents via the Task tool:
+## External Agents Used
+
+The plugin leverages these external specialist agents via the Task tool:
 
 | Agent | Purpose |
 |-------|---------|
@@ -128,7 +190,7 @@ All documents are created in `specification/[index]-[name]/` directory:
 2. `[index]-research-report.md` - Research findings
 3. `[index]-debug-analysis.md` - Debug analysis (bugs only)
 4. `[index]-assessment.md` - Code assessment
-5. `[index]-technical-spec.md` - Technical specification
+5. `[index]-specification.md` - Technical specification
 6. `[index]-implementation-plan.md` - Implementation plan
 7. `[index]-task-list.md` - Detailed task list
 8. `[index]-implementation-summary.md` - Final summary
