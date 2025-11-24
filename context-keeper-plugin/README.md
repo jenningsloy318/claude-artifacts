@@ -36,7 +36,7 @@ The plugin requires hooks to be configured in your Claude Code settings. Add the
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PROJECT_ROOT}/context-keeper-plugin/hooks/precompact.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/precompact.py",
             "timeout": 120
           }
         ]
@@ -48,7 +48,7 @@ The plugin requires hooks to be configured in your Claude Code settings. Add the
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PROJECT_ROOT}/context-keeper-plugin/hooks/session_start.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py",
             "timeout": 10
           }
         ]
