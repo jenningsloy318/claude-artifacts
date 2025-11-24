@@ -9,6 +9,7 @@ A Claude Code plugin marketplace for context persistence and productivity tools.
 | Plugin | Description | Version |
 |--------|-------------|---------|
 | [context-keeper](./context-keeper-plugin/) | Automatically summarize and persist conversation context before compaction | v1.0.0 |
+| [dev-workflow](./dev-workflow-plugin/) | Comprehensive development workflow with structured phases for implementing features, fixing bugs, and refactoring | v1.0.0 |
 
 ## Installation
 
@@ -76,6 +77,35 @@ Automatically saves context summaries before compaction and restores context on 
 
 See [context-keeper-plugin/README.md](./context-keeper-plugin/README.md) for full documentation.
 
+### Dev Workflow Plugin
+
+A comprehensive 11-phase development workflow for implementing features, fixing bugs, and refactoring code.
+
+**Features:**
+- Structured specification and planning phases
+- Research-driven implementation with multi-source search
+- Specialized agents for each phase (requirements, research, debugging, coding)
+- Built-in quality gates and code review
+- `/fix-impl` command for quick task execution
+
+**Key Agents:**
+| Agent | Purpose |
+|-------|---------|
+| `requirements-clarifier` | Gather and document complete requirements |
+| `research-agent` | Find best practices and documentation |
+| `debug-analyzer` | Root cause analysis for bugs |
+| `code-assessor` | Evaluate existing codebase |
+| `spec-writer` | Create tech specs and implementation plans |
+| `execution-coordinator` | Coordinate parallel implementation |
+
+**Usage:**
+```bash
+/dev-workflow:fix-impl Fix the login button not responding on mobile
+/dev-workflow:fix-impl Implement user profile page with avatar upload
+```
+
+See [dev-workflow-plugin/README.md](./dev-workflow-plugin/README.md) for full documentation.
+
 ## Repository Structure
 
 ```
@@ -83,10 +113,17 @@ claude-artifacts/
 ├── .claude-plugin/
 │   └── marketplace.json           # Marketplace manifest
 ├── README.md                      # This file
-├── context-keeper-plugin/         # Context keeper plugin
+├── context-keeper-plugin/         # Context persistence plugin
 │   ├── .claude-plugin/
 │   │   └── plugin.json
 │   ├── hooks/
+│   ├── commands/
+│   ├── skills/
+│   └── README.md
+├── dev-workflow-plugin/           # Development workflow plugin
+│   ├── .claude-plugin/
+│   │   └── plugin.json
+│   ├── agents/                    # Specialized workflow agents
 │   ├── commands/
 │   ├── skills/
 │   └── README.md
