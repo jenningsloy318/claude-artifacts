@@ -641,7 +641,7 @@ Feature: Web App Testing
 
 # STATIC CODE ANALYSIS: CODERABBIT CLI
 
-Run `coderabbit --prompt-only` in background and ask the development agent to fix the errors and issues it finds.
+Run `coderabbit --prompt-only` in background. Pass any errors and issues found to the current development agent (frontend-developer, backend-developer, rust-developer, etc.) to fix. Re-run CodeRabbit to verify fixes are applied.
 
 ---
 
