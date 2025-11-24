@@ -72,7 +72,7 @@ When invoked, you will receive:
 **Specialist Agents to Invoke:**
 | Purpose | Agent |
 |---------|-------|
-| Code Review | `superpowers:code-reviewer` |
+| Code Review | `dev-workflow:code-reviewer` |
 | TDD | `superpowers:test-driven-development` |
 | QA Testing | `dev-workflow:qa-agent` |
 

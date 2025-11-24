@@ -72,6 +72,7 @@ dev-workflow-plugin/
 │   ├── search-agent.md
 │   ├── debug-analyzer.md
 │   ├── code-assessor.md
+│   ├── code-reviewer.md
 │   ├── spec-writer.md
 │   └── execution-coordinator.md
 └── commands/
@@ -151,6 +152,16 @@ Evaluates existing codebase before making changes:
 
 **Invoke:** `Task(subagent_type: "dev-workflow:code-assessor")`
 
+### code-reviewer
+Specification-aware code review across 8 quality dimensions:
+- Correctness, Security, Performance, Maintainability
+- Testability, Error Handling, Consistency, Accessibility
+- Validates implementation against specification
+- Severity classification (Critical/High/Medium/Low/Info)
+- Tool integration with project linters
+
+**Invoke:** `Task(subagent_type: "dev-workflow:code-reviewer")`
+
 ### spec-writer
 Creates comprehensive technical documentation:
 - Technical Specification
@@ -177,10 +188,11 @@ The plugin leverages these external specialist agents via the Task tool:
 | `backend-developer` | Backend services |
 | `frontend-developer` | UI components |
 | `mobile-developer` | Mobile apps |
-| `superpowers:code-reviewer` | Code review |
 | `superpowers:test-driven-development` | TDD approach |
 | `superpowers:systematic-debugging` | Debugging methodology |
 | `documentation-expert` | Technical documentation |
+
+**Note:** Code review is now handled by the internal `dev-workflow:code-reviewer` agent.
 
 ## Output Documents
 

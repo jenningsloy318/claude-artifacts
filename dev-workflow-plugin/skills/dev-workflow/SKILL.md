@@ -242,7 +242,7 @@ Task(
 
 The execution-coordinator will invoke specialist agents as needed:
 - `rust-pro`, `backend-developer`, `frontend-developer`, `mobile-developer`
-- `superpowers:code-reviewer`, `superpowers:test-driven-development`
+- `dev-workflow:code-reviewer`, `superpowers:test-driven-development`
 - `documentation-expert`
 
 **Output:** Code, tests, and `[index]-implementation-summary.md`
@@ -331,6 +331,7 @@ Upon completion of all tasks:
 | `search-agent` | Multi-source search | `dev-workflow:search-agent` |
 | `debug-analyzer` | Root cause analysis | `dev-workflow:debug-analyzer` |
 | `code-assessor` | Assess codebase | `dev-workflow:code-assessor` |
+| `code-reviewer` | Specification-aware code review | `dev-workflow:code-reviewer` |
 | `architecture-agent` | Design architecture and create ADRs | `dev-workflow:architecture-agent` |
 | `ui-ux-designer` | Create UI/UX design specifications | `dev-workflow:ui-ux-designer` |
 | `spec-writer` | Write specifications | `dev-workflow:spec-writer` |
@@ -360,5 +361,6 @@ Upon completion of all tasks:
 
 - `superpowers:subagent-driven-development` - Parallel agent coordination
 - `superpowers:systematic-debugging` - Debugging methodology
-- `superpowers:code-reviewer` - Code review
 - `documentation-expert` - Technical documentation
+
+**Note:** `superpowers:code-reviewer` has been replaced by `dev-workflow:code-reviewer` (internal agent).
