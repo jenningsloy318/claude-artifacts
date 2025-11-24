@@ -6,8 +6,8 @@
     "name": "Jennings L",
     "email": "jennings@example.com"
   },
-  "homepage": "https://github.com/jenningsloy318/claude-artifacts",
-  "repository": "https://github.com/jenningsloy318/claude-artifacts",
+  "homepage": "https://github.com/jenningsloy318/super-skill-claude-artifacts",
+  "repository": "https://github.com/jenningsloy318/super-skill-claude-artifacts",
   "license": "MIT",
   "keywords": ["context", "keeper", "persistence", "memory", "compaction", "summary", "continuity"],
   "hooks": {

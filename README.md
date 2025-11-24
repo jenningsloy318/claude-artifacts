@@ -2,7 +2,7 @@
 
 A Claude Code plugin marketplace for context persistence and productivity tools.
 
-**Repository**: https://github.com/jenningsloy318/claude-artifacts
+**Repository**: https://github.com/jenningsloy318/super-skill-claude-artifacts
 
 ## Plugins
 
@@ -156,7 +156,7 @@ claude-artifacts/
 3. Make your changes
 4. Submit a pull request
 
-**Issues**: https://github.com/jenningsloy318/claude-artifacts/issues
+**Issues**: https://github.com/jenningsloy318/super-skill-claude-artifacts/issues
 
 ## License
 

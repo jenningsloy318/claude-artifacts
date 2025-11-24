@@ -18,7 +18,7 @@ Add to your Claude Code settings:
 ```json
 {
   "plugins": [
-    "https://github.com/jenningsloy318/claude-artifacts/tree/main/dev-workflow-plugin"
+    "https://github.com/jenningsloy318/super-skill-claude-artifacts/tree/main/dev-workflow-plugin"
   ]
 }
 ```

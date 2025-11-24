@@ -17,10 +17,10 @@ Automatically summarize and persist conversation context before compaction, with
 
 ```bash
 # Add the marketplace
-claude plugin marketplace add jenningsloy318/claude-artifacts
+claude plugin marketplace add jenningsloy318/super-skill-claude-artifacts
 
 # Install the plugin
-claude plugin install context-keeper@claude-artifacts
+claude plugin install context-keeper@super-skill-claude-artifacts
 ```
 
 ### Step 2: Restart Claude Code
@@ -31,8 +31,8 @@ Restart Claude Code for the plugin to take effect. The hooks are automatically r
 
 ```bash
 # 1. Add marketplace and install plugin
-claude plugin marketplace add jenningsloy318/claude-artifacts
-claude plugin install context-keeper@claude-artifacts
+claude plugin marketplace add jenningsloy318/super-skill-claude-artifacts
+claude plugin install context-keeper@super-skill-claude-artifacts
 
 # 2. (Optional) Set API key for LLM-based summaries
 export CLAUDE_SUMMARY_API_KEY="your-api-key"
@@ -168,8 +168,8 @@ Ask Claude naturally:
 
 ## Repository
 
-- **GitHub**: https://github.com/jenningsloy318/claude-artifacts
-- **Issues**: https://github.com/jenningsloy318/claude-artifacts/issues
+- **GitHub**: https://github.com/jenningsloy318/super-skill-claude-artifacts
+- **Issues**: https://github.com/jenningsloy318/super-skill-claude-artifacts/issues
 
 ## License
 
@@ -177,7 +177,7 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions welcome! Please open an issue or submit a pull request at https://github.com/jenningsloy318/claude-artifacts
+Contributions welcome! Please open an issue or submit a pull request at https://github.com/jenningsloy318/super-skill-claude-artifacts
 
 ## Changelog
 

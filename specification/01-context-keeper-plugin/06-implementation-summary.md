@@ -234,12 +234,12 @@ Ask Claude about sessions:
 Phase 1 is complete. The session persistence system is:
 - Fully functional and tested
 - Published as a Claude Code marketplace
-- Installable via `claude plugin marketplace add jenningsloy318/claude-artifacts`
+- Installable via `claude plugin marketplace add jenningsloy318/super-skill-claude-artifacts`
 - No manual configuration required
 
 To enable LLM-based summaries (higher quality), set the `CLAUDE_SUMMARY_API_KEY` environment variable.
 
 ### Repository
-- **GitHub:** https://github.com/jenningsloy318/claude-artifacts
-- **Marketplace:** `jenningsloy318/claude-artifacts`
-- **Plugin:** `context-keeper@claude-artifacts`
+- **GitHub:** https://github.com/jenningsloy318/super-skill-claude-artifacts
+- **Marketplace:** `jenningsloy318/super-skill-claude-artifacts`
+- **Plugin:** `context-keeper@super-skill-claude-artifacts`
