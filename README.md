@@ -15,11 +15,11 @@ A Claude Code plugin marketplace for context persistence and productivity tools.
 
 ```bash
 # 1. Add the marketplace
-claude plugin marketplace add jenningsloy318/claude-artifacts
+claude plugin marketplace add jenningsloy318/super-skill-claude-artifacts
 
 # 2. Install plugins
-claude plugin install context-keeper@claude-artifacts
-claude plugin install dev-workflow@claude-artifacts
+claude plugin install context-keeper@super-skill-claude-artifacts
+claude plugin install dev-workflow@super-skill-claude-artifacts
 
 # 3. (Optional) Configure LLM-based summaries in context-keeper
 export CLAUDE_SUMMARY_API_KEY="your-api-key"
@@ -33,16 +33,16 @@ export CLAUDE_SUMMARY_API_URL="https://api.anthropic.com"
 
 ```bash
 # Add this marketplace
-claude plugin marketplace add jenningsloy318/claude-artifacts
+claude plugin marketplace add jenningsloy318/super-skill-claude-artifacts
 
 # List all marketplaces
 claude plugin marketplace list
 
 # Update marketplace (fetch latest plugins)
-claude plugin marketplace update claude-artifacts
+claude plugin marketplace update super-skill-claude-artifacts
 
 # Remove marketplace
-claude plugin marketplace remove claude-artifacts
+claude plugin marketplace remove super-skill-claude-artifacts
 ```
 
 ## Plugins Overview
