@@ -77,17 +77,44 @@ A comprehensive 11-phase development workflow for implementing features, fixing 
 - Research-driven implementation with multi-source search
 - Specialized agents for each phase (requirements, research, debugging, coding)
 - Built-in quality gates and code review
-- `/fix-impl` command for quick task execution
 
-**Key Agents:**
+**Workflow Agents:**
 | Agent | Purpose |
 |-------|---------|
 | `requirements-clarifier` | Gather and document complete requirements |
 | `research-agent` | Find best practices and documentation |
+| `search-agent` | Multi-source search for retrieval |
 | `debug-analyzer` | Root cause analysis for bugs |
 | `code-assessor` | Evaluate existing codebase |
+| `architecture-agent` | Design architecture and create ADRs |
+| `ui-ux-designer` | Create UI/UX design specifications |
 | `spec-writer` | Create tech specs and implementation plans |
 | `execution-coordinator` | Coordinate parallel implementation |
+| `code-reviewer` | Specification-aware code review |
+| `qa-agent` | Modality-specific QA testing |
+
+**Developer Agents:**
+| Agent | Purpose |
+|-------|---------|
+| `rust-developer` | Rust systems programming |
+| `golang-developer` | Go backend development |
+| `frontend-developer` | React/Next.js/TypeScript development |
+| `backend-developer` | Node.js/Python backend development |
+| `android-developer` | Kotlin/Jetpack Compose development |
+| `ios-developer` | Swift/SwiftUI development |
+| `windows-app-developer` | C#/.NET/WinUI development |
+| `macos-app-developer` | Swift/SwiftUI/AppKit development |
+
+**Skills:**
+| Skill | Purpose |
+|-------|---------|
+| `dev-workflow` | Complete development workflow orchestration |
+| `dev-rules` | Core development rules and philosophy |
+
+**Commands:**
+| Command | Purpose |
+|---------|---------|
+| `/fix-impl` | Quick task execution for fixes and implementations |
 
 **Usage:**
 ```bash
