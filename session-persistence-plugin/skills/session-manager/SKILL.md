@@ -114,7 +114,7 @@ Use these tools to implement actions:
 
 ## Integration with PreCompact Hook
 
-This skill reads data created by the PreCompact hook (`~/.claude/hooks/precompact.py`).
+This skill reads data created by the PreCompact hook, which is automatically registered when the plugin is installed. No manual configuration required.
 
 **Index.json structure:**
 ```json

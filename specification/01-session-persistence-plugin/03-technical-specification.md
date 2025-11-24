@@ -74,7 +74,8 @@ Implement a PreCompact hook system that automatically summarizes and persists Cl
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  ┌────────────────┐                                                 │
-│  │ settings.json  │ ◀─── Hook Configuration                         │
+│  │ hooks/         │ ◀─── Plugin Hook Configuration                  │
+│  │ hooks.json     │      (auto-registered on install)               │
 │  └───────┬────────┘                                                 │
 │          │                                                          │
 │          ▼                                                          │
