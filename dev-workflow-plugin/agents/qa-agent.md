@@ -641,160 +641,33 @@ Feature: Web App Testing
 
 # STATIC CODE ANALYSIS: CODERABBIT CLI
 
-## CodeRabbit CLI Overview
+## CodeRabbit CLI Usage
 
-CodeRabbit CLI provides AI-powered code review directly in the terminal, catching issues before code is committed. It serves as a quality gate for detecting logic errors, security vulnerabilities, and code smells.
+Use CodeRabbit CLI for AI-powered static code review before committing. Run as a quality gate to catch issues early.
 
-### Prerequisites
+### When to Run
 
-**Installation:**
-```bash
-curl -fsSL https://cli.coderabbit.ai/install.sh | sh
-source ~/.zshrc  # or restart shell
-```
+| Phase | Command | Purpose |
+|-------|---------|---------|
+| Pre-commit | `cr --type uncommitted --plain` | Review uncommitted changes |
+| Pre-merge | `cr --base main --plain` | Review all changes vs main branch |
+| Agent mode | `cr --prompt-only` | Minimal output for automated fix loops |
 
-**Authentication:**
-```bash
-coderabbit auth login
-# or shorthand
-cr auth login
-```
+### Severity Response
 
-**Uninstall:**
-```bash
-rm $(which coderabbit)  # Script install
-brew remove coderabbit  # Homebrew install
-```
+| Severity | Action |
+|----------|--------|
+| Critical | Block commit, fix immediately |
+| High | Fix before merge |
+| Medium | Fix in same PR |
+| Low | Track for later |
 
-### Commands Reference
+### Integration Pattern
 
-| Command | Purpose |
-|---------|---------|
-| `cr` or `coderabbit` | Interactive mode review |
-| `cr --plain` | Detailed plaintext feedback |
-| `cr --prompt-only` | Minimal output for AI agent integration |
-
-### Options Reference
-
-| Option | Description |
-|--------|-------------|
-| `-t, --type <type>` | Review scope: `all`, `committed`, `uncommitted` |
-| `--base <branch>` | Compare against specific branch |
-| `--base-commit <commit>` | Compare against specific commit |
-| `-c, --config <files>` | Include config files (claude.md, coderabbit.yaml) |
-| `--cwd <path>` | Specify working directory |
-| `--no-color` | Disable colored output |
-
-### Issue Detection Capabilities
-
-CodeRabbit detects:
-
-| Category | Issues Detected |
-|----------|-----------------|
-| **Logic Errors** | Race conditions, null pointer dereferences, off-by-one errors |
-| **Security** | SQL injection, XSS, command injection, hardcoded secrets |
-| **Resource Leaks** | Memory leaks, unclosed streams, file handle leaks |
-| **Error Handling** | Missing try-catch, unhandled exceptions, swallowed errors |
-| **Code Quality** | Code smells, duplicated logic, missing unit tests |
-| **Concurrency** | Deadlocks, thread safety issues, goroutine synchronization |
-
-### QA Integration Workflow
-
-**Step 1: Pre-Commit Review**
-```bash
-# Review uncommitted changes before staging
-cr --type uncommitted --plain
-
-# Review against main branch
-cr --base main --plain
-
-# Review with project config
-cr --config .coderabbit.yaml --plain
-```
-
-**Step 2: AI Agent Integration (for automated pipelines)**
-```bash
-# Generate minimal output for agent processing
-cr --prompt-only > review-output.txt
-
-# Agent reads review-output.txt and applies fixes
-# Re-run CodeRabbit to verify fixes
-cr --prompt-only
-```
-
-**Step 3: Review Categories**
-
-For each CodeRabbit finding, categorize by severity:
-
-| Severity | Action | Examples |
-|----------|--------|----------|
-| **Critical** | Block commit | Security vulnerabilities, data loss risks |
-| **High** | Fix before merge | Logic errors, resource leaks |
-| **Medium** | Fix in same PR | Code smells, missing error handling |
-| **Low** | Track for later | Style issues, minor optimizations |
-
-### CodeRabbit Test Execution Template
-
-```gherkin
-Feature: CodeRabbit Static Analysis
-
-  Background:
-    Given CodeRabbit CLI is installed and authenticated
-    And working directory contains uncommitted changes
-
-  Scenario: Pre-commit code review
-    When I run "cr --type uncommitted --plain"
-    Then no critical issues should be found
-    And no high severity security issues should be found
-    And review output should be captured for report
-
-  Scenario: Branch comparison review
-    When I run "cr --base main --plain"
-    Then all changes since main should be reviewed
-    And findings should be categorized by severity
-    And actionable fixes should be documented
-
-  Scenario: AI agent iteration loop
-    When I run "cr --prompt-only"
-    And AI agent processes the findings
-    And AI agent applies recommended fixes
-    And I run "cr --prompt-only" again
-    Then critical issues should be resolved
-    And iteration should complete within 3 cycles
-```
-
-### Integration with Other QA Modalities
-
-**Before CLI Testing:**
-```bash
-# Run CodeRabbit on CLI source code
-cr --cwd ./src/cli --plain
-# Then proceed with CLI functional tests
-```
-
-**Before Web App Testing:**
-```bash
-# Run CodeRabbit on web app source
-cr --cwd ./src/web --plain
-# Then start dev server and run Playwright tests
-```
-
-**CI/CD Integration:**
-```yaml
-# Example GitHub Actions step
-- name: CodeRabbit Review
-  run: |
-    cr --type committed --base ${{ github.base_ref }} --plain
-    # Fail if critical issues found
-```
-
-### Rate Limits
-
-| Plan | Reviews per Hour | Features |
-|------|------------------|----------|
-| Free | 1 | Basic static analysis |
-| Lite | 1 | Enhanced detection, learnings |
-| Pro | 5 | Full context, team patterns |
+1. Run `cr --plain` before other QA modalities
+2. Categorize findings by severity
+3. Fix critical/high issues before proceeding
+4. Include CodeRabbit summary in test report
 
 ---
 
