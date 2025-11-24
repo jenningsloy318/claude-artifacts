@@ -74,7 +74,7 @@ Analyze the information provided and identify which specification applies:
 - Never create documents under project root or directly under `specification/`
 - All documents must be in a spec subdirectory
 - Document naming: `[index]-[document-name].md`
-- **Always use relative paths** when referencing files - use paths relative to the current spec directory (e.g., `./01-requirements.md`, `../../dev-workflow-plugin/agents/code-reviewer.md`) instead of absolute paths like `/home/user/project/...`
+- **Always use relative paths** when referencing files - use paths relative to the current spec directory (e.g., `./01-requirements.md`) instead of absolute paths like `/home/user/project/...`
 
 ---
 
