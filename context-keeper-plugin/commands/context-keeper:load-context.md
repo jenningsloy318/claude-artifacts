@@ -1,6 +1,7 @@
 ---
-name: load-context
+name: context-keeper:load-context
 description: Load a previous context summary for continuity after compaction
+argument-hint: "[session-id or timestamp]"
 ---
 
 # Load Context Command
@@ -9,7 +10,7 @@ Load a previous context summary to restore conversation state from before compac
 
 ## Arguments
 
-- `$ARGUMENTS` - Optional context ID or timestamp to load. If omitted, loads the most recent summary.
+- `$ARGUMENTS` - Optional session ID or timestamp to load. If omitted, loads the most recent summary.
 
 ## Instructions
 
@@ -21,15 +22,15 @@ When this command is invoked:
 2. **If no argument provided** (load latest):
    - Read `.claude/summaries/index.json`
    - Get the most recent summary entry
-   - Read the summary file from `{context_id}/{timestamp}/summary.md`
+   - Read the summary file from `{session_id}/{timestamp}/summary.md`
 
-3. **If context ID or timestamp provided**:
+3. **If session ID or timestamp provided**:
    - Search for matching context in index
    - If found, load that specific summary
-   - If not found, list available contexts
+   - If not found, list available sessions
 
 4. **Present the summary** to the user with:
-   - Context metadata (ID, timestamp, trigger)
+   - Context metadata (session ID, timestamp, trigger)
    - Full summary content
    - Option to inject into current context
 
@@ -40,13 +41,13 @@ When this command is invoked:
 ## Usage Examples
 
 ```
-/load-context
+/context-keeper:load-context
 # Loads the most recent context summary
 
-/load-context abc123
-# Loads summary for context starting with abc123
+/context-keeper:load-context abc123
+# Loads summary for session starting with abc123
 
-/load-context 20251123_190448
+/context-keeper:load-context 20251123_190448
 # Loads summary from specific timestamp
 ```
 
@@ -70,7 +71,7 @@ When loading a context:
 ```
 ## Context Summary Loaded
 
-**Context ID:** abc123...
+**Session ID:** abc123...
 **Created:** 2025-11-23 19:04:48
 **Trigger:** auto
 
@@ -79,3 +80,8 @@ When loading a context:
 ---
 Would you like me to use this context for our conversation?
 ```
+
+## Related Commands
+
+- `/context-keeper:list-sessions` - List all stored sessions
+- `/context-keeper:list-context [session-id]` - List contexts for a specific session

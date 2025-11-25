@@ -52,22 +52,22 @@ def _write_to_debug_log(message: str):
         pass  # Silently ignore log failures
 
 
-def _ensure_anthropic_installed() -> bool:
-    """Ensure the anthropic package is installed, auto-installing if needed."""
+def _ensure_package_installed(package_name: str) -> bool:
+    """Ensure a Python package is installed, auto-installing if needed."""
     try:
-        import anthropic
+        __import__(package_name.replace("-", "_"))
         return True
     except ImportError:
         pass
 
-    _write_to_debug_log("anthropic package not found, attempting auto-install...")
+    _write_to_debug_log(f"{package_name} package not found, attempting auto-install...")
 
     # Try different pip installation methods
     install_commands = [
-        [sys.executable, "-m", "pip", "install", "--user", "anthropic"],
-        [sys.executable, "-m", "pip", "install", "anthropic"],
-        ["pip3", "install", "--user", "anthropic"],
-        ["pip3", "install", "--break-system-packages", "anthropic"],
+        [sys.executable, "-m", "pip", "install", "--user", package_name],
+        [sys.executable, "-m", "pip", "install", package_name],
+        ["pip3", "install", "--user", package_name],
+        ["pip3", "install", "--break-system-packages", package_name],
     ]
 
     for cmd in install_commands:
@@ -80,11 +80,11 @@ def _ensure_anthropic_installed() -> bool:
                 timeout=60
             )
             if result.returncode == 0:
-                _write_to_debug_log(f"Successfully installed anthropic via: {' '.join(cmd)}")
+                _write_to_debug_log(f"Successfully installed {package_name} via: {' '.join(cmd)}")
                 # Verify import works now
                 try:
-                    import anthropic
-                    _write_to_debug_log(f"anthropic version: {getattr(anthropic, '__version__', 'unknown')}")
+                    mod = __import__(package_name.replace("-", "_"))
+                    _write_to_debug_log(f"{package_name} version: {getattr(mod, '__version__', 'unknown')}")
                     return True
                 except ImportError:
                     _write_to_debug_log("Import still failed after installation")
@@ -98,6 +98,11 @@ def _ensure_anthropic_installed() -> bool:
 
     _write_to_debug_log("All installation attempts failed")
     return False
+
+
+def _ensure_anthropic_installed() -> bool:
+    """Ensure the anthropic package is installed, auto-installing if needed."""
+    return _ensure_package_installed("anthropic")
 
 
 def read_hook_input() -> dict:
@@ -603,6 +608,164 @@ def extract_topics_from_summary(summary: str) -> list[str]:
 
 
 # ============================================================================
+# Nowledge MCP Integration
+# ============================================================================
+
+NOWLEDGE_MCP_URL = "http://localhost:14242/mcp"
+
+
+def persist_to_nowledge(summary: str, metadata: dict, content: dict) -> bool:
+    """
+    Persist memory and thread to nowledge MCP server.
+
+    Uses mcp-use Python client to call nowledge MCP tools:
+    - memory_add: Add distilled memory with key insights
+    - thread_persist: Save full conversation thread
+
+    Returns True if successful, False otherwise.
+    Non-blocking - failures don't affect local summary storage.
+    """
+    log_debug("=== persist_to_nowledge() START ===")
+
+    # Check if mcp-use is installed
+    if not _ensure_package_installed("mcp-use"):
+        log_debug("mcp-use not available, skipping nowledge integration")
+        return False
+
+    try:
+        import asyncio
+        from mcp_use import MCPClient
+
+        log_debug("mcp-use imported successfully")
+    except ImportError as e:
+        log_debug(f"Failed to import mcp-use: {e}")
+        return False
+
+    async def _persist_async():
+        """Async function to call nowledge MCP tools."""
+        config = {
+            "mcpServers": {
+                "nowledge-mem": {
+                    "url": NOWLEDGE_MCP_URL,
+                    "type": "streamableHttp",
+                    "headers": {
+                        "APP": "context-keeper"
+                    }
+                }
+            }
+        }
+
+        client = MCPClient.from_dict(config)
+        results = {"memory": False, "thread": False}
+
+        try:
+            log_debug("Creating MCP session...")
+            await client.create_all_sessions()
+            session = client.get_session("nowledge-mem")
+
+            if not session:
+                log_debug("Failed to get nowledge-mem session")
+                return results
+
+            # List available tools to verify connection
+            log_debug("Listing available tools...")
+            tools = await session.list_tools()
+            tool_names = [t.name for t in tools]
+            log_debug(f"Available tools: {tool_names}")
+
+            # 1. Add memory with distilled insights
+            if "memory_add" in tool_names:
+                log_debug("Calling memory_add...")
+                try:
+                    # Extract key insights for memory
+                    topics = metadata.get("topics", [])
+                    files_modified = metadata.get("files_modified", [])
+                    session_id = metadata.get("session_id", "unknown")
+                    project = metadata.get("cwd", "unknown")
+
+                    # Create a concise memory content
+                    memory_content = f"""Session {session_id[:8]} - {project}
+
+Key topics: {', '.join(topics[:5]) if topics else 'None'}
+Files modified: {len(files_modified)}
+Message count: {metadata.get('message_count', 0)}
+
+Summary excerpt:
+{summary[:1500]}"""
+
+                    memory_result = await session.call_tool(
+                        name="memory_add",
+                        arguments={
+                            "content": memory_content,
+                            "title": f"Claude Code Session: {', '.join(topics[:3]) if topics else session_id[:8]}",
+                            "importance": 0.7,
+                            "labels": ",".join(["claude-code", "session-summary"] + topics[:3]),
+                            "source": "context-keeper-precompact"
+                        }
+                    )
+                    log_debug(f"memory_add result: {memory_result}")
+                    results["memory"] = True
+                    log_info("Memory persisted to nowledge")
+                except Exception as e:
+                    log_debug(f"memory_add failed: {e}")
+
+            # 2. Persist full thread
+            if "thread_persist" in tool_names:
+                log_debug("Calling thread_persist...")
+                try:
+                    thread_result = await session.call_tool(
+                        name="thread_persist",
+                        arguments={
+                            "client": "claude-code",
+                            "project_path": metadata.get("cwd", ""),
+                            "persist_mode": "current",
+                            "summary": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(metadata.get('topics', [])[:3])}"[:100]
+                        }
+                    )
+                    log_debug(f"thread_persist result: {thread_result}")
+                    results["thread"] = True
+                    log_info("Thread persisted to nowledge")
+                except Exception as e:
+                    log_debug(f"thread_persist failed: {e}")
+
+            return results
+
+        except Exception as e:
+            log_debug(f"MCP session error: {e}")
+            return results
+        finally:
+            try:
+                await client.close_all_sessions()
+            except Exception:
+                pass
+
+    # Run the async function
+    try:
+        # Check if nowledge server is reachable first
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        result = sock.connect_ex(('localhost', 14242))
+        sock.close()
+
+        if result != 0:
+            log_debug("Nowledge MCP server not reachable on localhost:14242")
+            log_debug("=== persist_to_nowledge() END (server not running) ===")
+            return False
+
+        log_debug("Nowledge server is reachable, proceeding with persistence...")
+        results = asyncio.run(_persist_async())
+        success = results.get("memory", False) or results.get("thread", False)
+        log_debug(f"=== persist_to_nowledge() END (success={success}) ===")
+        return success
+
+    except Exception as e:
+        log_debug(f"persist_to_nowledge error: {e}")
+        log_debug("=== persist_to_nowledge() END (exception) ===")
+        return False
+
+
+# ============================================================================
 # Main Execution
 # ============================================================================
 
@@ -682,6 +845,17 @@ def main():
         log_info(f"Summary saved: {summary_path}")
         log_info(f"Files modified: {len(metadata['files_modified'])}")
         log_info(f"Topics: {', '.join(metadata['topics'][:5]) if metadata['topics'] else 'none extracted'}")
+
+        # Persist to nowledge (non-blocking, optional)
+        log_debug("Attempting to persist to nowledge...")
+        try:
+            nowledge_success = persist_to_nowledge(summary, metadata, content)
+            if nowledge_success:
+                log_debug("Nowledge persistence successful")
+            else:
+                log_debug("Nowledge persistence skipped or failed (non-blocking)")
+        except Exception as e:
+            log_debug(f"Nowledge persistence error (non-blocking): {e}")
 
         log_debug("=" * 60)
         log_debug("=== PRECOMPACT HOOK COMPLETED SUCCESSFULLY ===")
