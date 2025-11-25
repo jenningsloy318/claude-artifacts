@@ -58,6 +58,11 @@ def log_info(message: str):
     print(f"[PreCompact] {message}")
 
 
+def log_debug(message: str):
+    """Log debug info to stderr for troubleshooting."""
+    print(f"[PreCompact Debug] {message}", file=sys.stderr)
+
+
 # ============================================================================
 # Transcript Parsing
 # ============================================================================
@@ -167,48 +172,133 @@ def extract_conversation_content(messages: list[dict]) -> dict:
 def get_settings_env() -> dict:
     """Load env vars from ~/.claude/settings.json as fallback."""
     settings_path = Path.home() / ".claude" / "settings.json"
-    if settings_path.exists():
-        try:
-            settings = json.loads(settings_path.read_text(encoding='utf-8'))
-            return settings.get("env", {})
-        except (json.JSONDecodeError, Exception):
-            pass
-    return {}
+    log_debug(f"Looking for settings.json at: {settings_path}")
+
+    if not settings_path.exists():
+        log_debug(f"settings.json NOT FOUND at {settings_path}")
+        return {}
+
+    log_debug(f"settings.json EXISTS at {settings_path}")
+    try:
+        raw_content = settings_path.read_text(encoding='utf-8')
+        log_debug(f"settings.json content length: {len(raw_content)} chars")
+        settings = json.loads(raw_content)
+        log_debug(f"settings.json parsed successfully, keys: {list(settings.keys())}")
+
+        env_section = settings.get("env", {})
+        if env_section:
+            log_debug(f"Found 'env' section with keys: {list(env_section.keys())}")
+            # Mask sensitive values in debug output
+            for key in env_section:
+                value = env_section[key]
+                if value:
+                    masked = value[:4] + "..." + value[-4:] if len(value) > 10 else "***"
+                    log_debug(f"  env[{key}] = {masked}")
+        else:
+            log_debug("'env' section is EMPTY or NOT FOUND in settings.json")
+
+        return env_section
+    except json.JSONDecodeError as e:
+        log_error(f"Failed to parse settings.json: {e}")
+        return {}
+    except Exception as e:
+        log_error(f"Failed to read settings.json: {e}")
+        return {}
 
 
 def get_api_key() -> Optional[str]:
     """Get API key from environment with fallback to settings.json."""
+    log_debug("=== get_api_key() START ===")
+
     # First try shell environment
-    key = os.environ.get("CLAUDE_SUMMARY_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-    if key:
-        return key
+    log_debug("Checking shell environment for API key...")
+    env_key = os.environ.get("CLAUDE_SUMMARY_API_KEY")
+    env_key_anthropic = os.environ.get("ANTHROPIC_API_KEY")
+
+    if env_key:
+        masked = env_key[:4] + "..." + env_key[-4:] if len(env_key) > 10 else "***"
+        log_debug(f"Found CLAUDE_SUMMARY_API_KEY in shell env: {masked}")
+        log_debug("=== get_api_key() END (from shell env) ===")
+        return env_key
+    elif env_key_anthropic:
+        masked = env_key_anthropic[:4] + "..." + env_key_anthropic[-4:] if len(env_key_anthropic) > 10 else "***"
+        log_debug(f"Found ANTHROPIC_API_KEY in shell env: {masked}")
+        log_debug("=== get_api_key() END (from shell env) ===")
+        return env_key_anthropic
+    else:
+        log_debug("NO API key found in shell environment")
+
     # Fallback to settings.json env section
+    log_debug("Falling back to settings.json...")
     settings_env = get_settings_env()
-    return settings_env.get("CLAUDE_SUMMARY_API_KEY") or settings_env.get("ANTHROPIC_API_KEY")
+
+    settings_key = settings_env.get("CLAUDE_SUMMARY_API_KEY")
+    settings_key_anthropic = settings_env.get("ANTHROPIC_API_KEY")
+
+    if settings_key:
+        masked = settings_key[:4] + "..." + settings_key[-4:] if len(settings_key) > 10 else "***"
+        log_debug(f"Found CLAUDE_SUMMARY_API_KEY in settings.json: {masked}")
+        log_debug("=== get_api_key() END (from settings.json) ===")
+        return settings_key
+    elif settings_key_anthropic:
+        masked = settings_key_anthropic[:4] + "..." + settings_key_anthropic[-4:] if len(settings_key_anthropic) > 10 else "***"
+        log_debug(f"Found ANTHROPIC_API_KEY in settings.json: {masked}")
+        log_debug("=== get_api_key() END (from settings.json) ===")
+        return settings_key_anthropic
+
+    log_debug("NO API key found in settings.json either")
+    log_debug("=== get_api_key() END (NO KEY FOUND) ===")
+    return None
 
 
 def get_api_url() -> Optional[str]:
     """Get custom API URL from environment with fallback to settings.json."""
+    log_debug("=== get_api_url() START ===")
+
     # First try shell environment
-    url = os.environ.get("CLAUDE_SUMMARY_API_URL")
-    if url:
-        return url
+    log_debug("Checking shell environment for API URL...")
+    env_url = os.environ.get("CLAUDE_SUMMARY_API_URL")
+
+    if env_url:
+        log_debug(f"Found CLAUDE_SUMMARY_API_URL in shell env: {env_url}")
+        log_debug("=== get_api_url() END (from shell env) ===")
+        return env_url
+    else:
+        log_debug("NO API URL found in shell environment")
+
     # Fallback to settings.json env section
+    log_debug("Falling back to settings.json...")
     settings_env = get_settings_env()
-    return settings_env.get("CLAUDE_SUMMARY_API_URL")
+
+    settings_url = settings_env.get("CLAUDE_SUMMARY_API_URL")
+    if settings_url:
+        log_debug(f"Found CLAUDE_SUMMARY_API_URL in settings.json: {settings_url}")
+        log_debug("=== get_api_url() END (from settings.json) ===")
+        return settings_url
+
+    log_debug("NO API URL found in settings.json either")
+    log_debug("=== get_api_url() END (NO URL FOUND) ===")
+    return None
 
 
 def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str]:
     """Generate comprehensive summary using Claude API."""
+    log_debug("=== generate_summary_with_llm() START ===")
+
     api_key = get_api_key()
     if not api_key:
         log_info("No API key found (CLAUDE_SUMMARY_API_KEY or ANTHROPIC_API_KEY)")
+        log_debug("=== generate_summary_with_llm() END (no API key) ===")
         return None
+
+    log_debug(f"API key obtained, length: {len(api_key)} chars")
 
     try:
         import anthropic
+        log_debug(f"anthropic package imported successfully, version: {getattr(anthropic, '__version__', 'unknown')}")
     except ImportError:
         log_error("anthropic package not installed. Run: pip install anthropic")
+        log_debug("=== generate_summary_with_llm() END (no anthropic) ===")
         return None
 
     # Prepare content for summarization (truncate to avoid token limits)
@@ -270,20 +360,29 @@ Be comprehensive but concise. Focus on information that would help resume this w
     try:
         # Build client with optional custom base URL
         api_url = get_api_url()
+        log_debug(f"API URL obtained: {api_url if api_url else 'None (using default)'}")
+
         if api_url:
+            log_debug(f"Creating Anthropic client with custom base_url: {api_url}")
             client = anthropic.Anthropic(api_key=api_key, base_url=api_url)
             log_info(f"Using custom API URL: {api_url}")
         else:
+            log_debug("Creating Anthropic client with default base_url")
             client = anthropic.Anthropic(api_key=api_key)
 
+        log_debug(f"Calling LLM with model: {SUMMARY_MODEL}, max_tokens: {MAX_TOKENS}")
         response = client.messages.create(
             model=SUMMARY_MODEL,
             max_tokens=MAX_TOKENS,
             messages=[{"role": "user", "content": prompt}]
         )
+        log_debug(f"LLM response received, content length: {len(response.content[0].text)} chars")
+        log_debug("=== generate_summary_with_llm() END (success) ===")
         return response.content[0].text
     except Exception as e:
         log_error(f"LLM summarization failed: {e}")
+        log_debug(f"Exception type: {type(e).__name__}")
+        log_debug("=== generate_summary_with_llm() END (exception) ===")
         return None
 
 
@@ -442,12 +541,23 @@ def extract_topics_from_summary(summary: str) -> list[str]:
 # ============================================================================
 
 def main():
+    log_debug("=" * 60)
+    log_debug("=== PRECOMPACT HOOK STARTED ===")
+    log_debug(f"Python version: {sys.version}")
+    log_debug(f"Script path: {__file__}")
+    log_debug(f"Working directory: {os.getcwd()}")
+    log_debug(f"HOME: {Path.home()}")
+    log_debug("=" * 60)
+
     try:
         # Read input from Claude Code
+        log_debug("Reading hook input from stdin...")
         hook_input = read_hook_input()
+        log_debug(f"Hook input received: {bool(hook_input)}")
 
         if not hook_input:
             log_error("No input received")
+            log_debug("=== PRECOMPACT HOOK ENDED (no input) ===")
             sys.exit(1)
 
         # Extract session information
@@ -455,6 +565,11 @@ def main():
         transcript_path = hook_input.get("transcript_path", "")
         trigger = hook_input.get("trigger", "unknown")
         cwd = hook_input.get("cwd", os.getcwd())
+
+        log_debug(f"Session ID: {session_id}")
+        log_debug(f"Transcript path: {transcript_path}")
+        log_debug(f"Trigger: {trigger}")
+        log_debug(f"CWD: {cwd}")
 
         log_info(f"Processing session {session_id[:8]}... (trigger: {trigger})")
 
@@ -495,16 +610,21 @@ def main():
         }
 
         # Save to project directory
+        log_debug("Saving summary to project directory...")
         summary_path = save_summary(session_id, summary, metadata, cwd)
 
         log_info(f"Summary saved: {summary_path}")
         log_info(f"Files modified: {len(metadata['files_modified'])}")
         log_info(f"Topics: {', '.join(metadata['topics'][:5]) if metadata['topics'] else 'none extracted'}")
 
+        log_debug("=" * 60)
+        log_debug("=== PRECOMPACT HOOK COMPLETED SUCCESSFULLY ===")
+        log_debug("=" * 60)
         sys.exit(0)
 
     except Exception as e:
         log_error(f"Unexpected error: {e}")
+        log_debug("=== PRECOMPACT HOOK ENDED (exception) ===")
         import traceback
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)
