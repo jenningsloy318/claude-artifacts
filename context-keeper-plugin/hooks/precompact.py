@@ -164,17 +164,38 @@ def extract_conversation_content(messages: list[dict]) -> dict:
 # Summary Generation
 # ============================================================================
 
+def get_settings_env() -> dict:
+    """Load env vars from ~/.claude/settings.json as fallback."""
+    settings_path = Path.home() / ".claude" / "settings.json"
+    if settings_path.exists():
+        try:
+            settings = json.loads(settings_path.read_text(encoding='utf-8'))
+            return settings.get("env", {})
+        except (json.JSONDecodeError, Exception):
+            pass
+    return {}
+
+
 def get_api_key() -> Optional[str]:
-    """Get API key from environment with fallback."""
-    return (
-        os.environ.get("CLAUDE_SUMMARY_API_KEY") or
-        os.environ.get("ANTHROPIC_API_KEY")
-    )
+    """Get API key from environment with fallback to settings.json."""
+    # First try shell environment
+    key = os.environ.get("CLAUDE_SUMMARY_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+    if key:
+        return key
+    # Fallback to settings.json env section
+    settings_env = get_settings_env()
+    return settings_env.get("CLAUDE_SUMMARY_API_KEY") or settings_env.get("ANTHROPIC_API_KEY")
 
 
 def get_api_url() -> Optional[str]:
-    """Get custom API URL from environment."""
-    return os.environ.get("CLAUDE_SUMMARY_API_URL")
+    """Get custom API URL from environment with fallback to settings.json."""
+    # First try shell environment
+    url = os.environ.get("CLAUDE_SUMMARY_API_URL")
+    if url:
+        return url
+    # Fallback to settings.json env section
+    settings_env = get_settings_env()
+    return settings_env.get("CLAUDE_SUMMARY_API_URL")
 
 
 def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str]:
