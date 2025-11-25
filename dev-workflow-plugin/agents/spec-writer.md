@@ -260,9 +260,11 @@ interface DataModel {
 **Specification:** [link to spec]
 **Estimated Phases:** [number]
 
+**CRITICAL:** All phases/milestones defined in this plan MUST be implemented in a single continuous execution. The execution-coordinator will NOT pause between phases or ask for permission to continue. Every phase from Phase 1 to Final Phase will be completed automatically.
+
 ## Milestones
 
-### Milestone 1: [Name]
+### Milestone 1 (Phase 1): [Name]
 **Goal:** [What this milestone achieves]
 **Dependencies:** [Prerequisites]
 
@@ -278,10 +280,10 @@ interface DataModel {
 - `path/to/file1.ts`
 - `path/to/file2.ts`
 
-### Milestone 2: [Name]
+### Milestone 2 (Phase 2): [Name]
 [same structure]
 
-### Milestone 3: [Name]
+### Milestone 3 (Phase 3): [Name]
 [same structure]
 
 ## Risk Assessment

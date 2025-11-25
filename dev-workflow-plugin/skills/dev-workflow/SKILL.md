@@ -256,7 +256,18 @@ Task(
 )
 ```
 
-**CRITICAL:** Do not pause or stop during execution. If multiple options exist, choose the one that continues implementation.
+**CRITICAL EXECUTION RULES:**
+1. **NEVER pause or stop during execution** - implement ALL phases/milestones continuously
+2. **NEVER ask if user wants to continue** to next phase - always proceed automatically
+3. If task list has multiple phases/milestones, ALL must be completed in single execution
+4. If multiple implementation options exist, choose the one that continues implementation
+5. Only stop if blocked by external dependencies or critical errors
+
+**Multi-Phase Implementation:**
+- When spec-writer creates implementation plan with multiple phases (Phase 1, Phase 2, Phase 3, etc.)
+- Execution coordinator MUST implement ALL phases without interruption
+- Do NOT seek permission between phases - treat as single continuous workflow
+- Progress through: Phase 1 → Phase 2 → Phase 3 → ... → Final Phase automatically
 
 The execution-coordinator will invoke specialist agents as needed:
 - `dev-workflow:rust-developer`, `dev-workflow:golang-developer`
