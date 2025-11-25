@@ -21,6 +21,7 @@ import sys
 import json
 import os
 import re
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -33,10 +34,71 @@ SUMMARY_MODEL = "claude-sonnet-4-20250514"
 MAX_TOKENS = 4000
 TIMEOUT_SECONDS = 90
 
+# Debug log file path (always logs here so we can check what happened)
+DEBUG_LOG_PATH = Path.home() / ".claude" / "precompact-debug.log"
+
 
 # ============================================================================
 # Input/Output Helpers
 # ============================================================================
+
+def _write_to_debug_log(message: str):
+    """Append message to debug log file."""
+    try:
+        with open(DEBUG_LOG_PATH, 'a', encoding='utf-8') as f:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"[{timestamp}] {message}\n")
+    except Exception:
+        pass  # Silently ignore log failures
+
+
+def _ensure_anthropic_installed() -> bool:
+    """Ensure the anthropic package is installed, auto-installing if needed."""
+    try:
+        import anthropic
+        return True
+    except ImportError:
+        pass
+
+    _write_to_debug_log("anthropic package not found, attempting auto-install...")
+
+    # Try different pip installation methods
+    install_commands = [
+        [sys.executable, "-m", "pip", "install", "--user", "anthropic"],
+        [sys.executable, "-m", "pip", "install", "anthropic"],
+        ["pip3", "install", "--user", "anthropic"],
+        ["pip3", "install", "--break-system-packages", "anthropic"],
+    ]
+
+    for cmd in install_commands:
+        try:
+            _write_to_debug_log(f"Trying: {' '.join(cmd)}")
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            if result.returncode == 0:
+                _write_to_debug_log(f"Successfully installed anthropic via: {' '.join(cmd)}")
+                # Verify import works now
+                try:
+                    import anthropic
+                    _write_to_debug_log(f"anthropic version: {getattr(anthropic, '__version__', 'unknown')}")
+                    return True
+                except ImportError:
+                    _write_to_debug_log("Import still failed after installation")
+                    continue
+            else:
+                _write_to_debug_log(f"Command failed: {result.stderr[:200] if result.stderr else 'no error'}")
+        except subprocess.TimeoutExpired:
+            _write_to_debug_log(f"Command timed out: {' '.join(cmd)}")
+        except Exception as e:
+            _write_to_debug_log(f"Command error: {e}")
+
+    _write_to_debug_log("All installation attempts failed")
+    return False
+
 
 def read_hook_input() -> dict:
     """Read JSON input from stdin."""
@@ -49,17 +111,20 @@ def read_hook_input() -> dict:
 
 
 def log_error(message: str):
-    """Log error to stderr."""
+    """Log error to stderr and debug file."""
     print(f"[PreCompact Error] {message}", file=sys.stderr)
+    _write_to_debug_log(f"ERROR: {message}")
 
 
 def log_info(message: str):
-    """Log info to stdout (visible to user)."""
+    """Log info to stdout (visible to user) and debug file."""
     print(f"[PreCompact] {message}")
+    _write_to_debug_log(f"INFO: {message}")
 
 
 def log_debug(message: str):
-    """Log debug info to stderr for troubleshooting."""
+    """Log debug info to debug file (always) and stderr."""
+    _write_to_debug_log(f"DEBUG: {message}")
     print(f"[PreCompact Debug] {message}", file=sys.stderr)
 
 
@@ -293,13 +358,14 @@ def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str
 
     log_debug(f"API key obtained, length: {len(api_key)} chars")
 
-    try:
-        import anthropic
-        log_debug(f"anthropic package imported successfully, version: {getattr(anthropic, '__version__', 'unknown')}")
-    except ImportError:
-        log_error("anthropic package not installed. Run: pip install anthropic")
+    # Ensure anthropic package is installed (auto-install if needed)
+    if not _ensure_anthropic_installed():
+        log_error("anthropic package not available and auto-install failed")
         log_debug("=== generate_summary_with_llm() END (no anthropic) ===")
         return None
+
+    import anthropic
+    log_debug(f"anthropic package imported successfully, version: {getattr(anthropic, '__version__', 'unknown')}")
 
     # Prepare content for summarization (truncate to avoid token limits)
     user_msgs = content.get('user_messages', [])[:20]  # Last 20 user messages
