@@ -145,6 +145,38 @@ Before moving to next task/phase:
 2. **Use ASCII diagrams**: When necessary, draw comparison diagrams for multiple solutions, let user choose
 3. **Confirm before developing**: Only start development after user explicitly confirms the solution
 
+### Bug/Error Reporting Requirements (MANDATORY)
+
+When a user reports a bug or error, **ALWAYS** ask for reproduction steps before attempting to fix:
+
+#### Required Information
+Ask user to provide:
+1. **Steps to Reproduce** - Exact sequence of actions to trigger the bug
+2. **Expected Behavior** - What should happen
+3. **Actual Behavior** - What actually happens (error message, wrong output, etc.)
+4. **Environment** (if relevant) - OS, browser, Node version, etc.
+
+#### Example Questions to Ask
+```
+To help fix this bug, please provide:
+1. What steps trigger this error? (e.g., "Run `npm test`, click button X, enter value Y")
+2. What did you expect to happen?
+3. What actually happened? (paste full error message if available)
+4. Any relevant environment details?
+```
+
+#### Why This Matters
+- Cannot reliably fix bugs without understanding how to reproduce them
+- Prevents guessing and multiple failed fix attempts
+- Ensures the fix actually addresses the user's specific issue
+- Enables proper verification that the fix works
+
+#### Exceptions
+Only skip reproduction steps if:
+- Error is clearly visible in provided stack trace/logs
+- User provides comprehensive context upfront
+- It's a typo or obvious code error the user points to directly
+
 ### Implementation Process
 1. **Understand existing patterns**: Study 3 similar features/components in the codebase
 2. **Identify common patterns**: Find project conventions and patterns

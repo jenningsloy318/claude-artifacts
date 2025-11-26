@@ -159,6 +159,27 @@ After gathering requirements, ALWAYS probe for downstream needs:
 
 ### For Bug Fixes
 
+**⚠️ MANDATORY: Reproduction Steps Required**
+
+Before proceeding with ANY bug fix, you MUST gather reproduction steps. Do NOT skip this.
+
+**Phase 0: Reproduction Steps (MANDATORY - ASK FIRST)**
+```
+To help fix this bug, I need to understand how to reproduce it:
+
+1. What EXACT steps trigger this error?
+   (e.g., "Run `npm test`, click button X, enter value Y")
+2. What did you EXPECT to happen?
+3. What ACTUALLY happened?
+   (Please paste full error message if available)
+4. Can you reproduce it consistently, or is it intermittent?
+```
+
+**Only proceed to Phase 1 after getting reproduction steps, UNLESS:**
+- Error is clearly visible in provided stack trace/logs
+- User provides comprehensive context upfront
+- It's a typo or obvious code error the user points to directly
+
 **Phase 1: Understand Intent**
 ```
 1. What were you trying to accomplish when this happened?
@@ -167,13 +188,12 @@ After gathering requirements, ALWAYS probe for downstream needs:
 4. How urgent is this? What's blocked?
 ```
 
-**Phase 2: Gather Evidence**
+**Phase 2: Gather Additional Evidence**
 ```
-1. What exactly happened vs. what you expected?
-2. Can you share screenshots or error messages?
-3. What steps led to this error?
-4. Does it happen every time or intermittently?
-5. When did this start? Any recent changes?
+1. Can you share screenshots or error messages?
+2. Does it happen every time or intermittently?
+3. When did this start? Any recent changes?
+4. Have you tried any workarounds?
 ```
 
 **Phase 3: Context & Environment**

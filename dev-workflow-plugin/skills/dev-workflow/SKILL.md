@@ -156,6 +156,29 @@ Task(
 
 The agent will ask appropriate questions for features or bug fixes and produce:
 
+### Bug/Error Reports - MANDATORY Reproduction Steps
+
+**Before attempting to fix ANY bug or error, ALWAYS ask user for:**
+
+1. **Steps to Reproduce** - Exact sequence of actions to trigger the bug
+2. **Expected Behavior** - What should happen
+3. **Actual Behavior** - What actually happens (error message, wrong output, etc.)
+4. **Environment** (if relevant) - OS, browser, Node version, etc.
+
+**Example questions to ask:**
+```
+To help fix this bug, please provide:
+1. What steps trigger this error? (e.g., "Run `npm test`, click button X, enter value Y")
+2. What did you expect to happen?
+3. What actually happened? (paste full error message if available)
+4. Any relevant environment details?
+```
+
+**Exceptions** (can skip reproduction steps if):
+- Error is clearly visible in provided stack trace/logs
+- User provides comprehensive context upfront
+- It's a typo or obvious code error the user points to directly
+
 **Output:** `[index]-requirements.md` in spec directory
 
 ---
