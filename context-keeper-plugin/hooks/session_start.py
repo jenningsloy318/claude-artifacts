@@ -98,7 +98,7 @@ def load_latest_summary(project_path: str, session_id: str = None) -> tuple[str,
     return None, None
 
 
-def format_context(summary: str, metadata: dict, event_type: str) -> str:
+def format_context(summary: str, metadata: dict, source: str, permission_mode: str = "default") -> str:
     """Format summary for context injection."""
 
     timestamp = metadata.get('timestamp', metadata.get('created_at', 'unknown'))
@@ -115,7 +115,8 @@ This context was automatically loaded from a previous session summary.
 - **Summary Created:** {timestamp}
 - **Compaction Trigger:** {trigger}
 - **Files Modified:** {len(files_modified)}
-- **Reload Event:** {event_type}
+- **Reload Source:** {source}
+- **Permission Mode:** {permission_mode}
 
 ---
 
@@ -139,15 +140,26 @@ def main():
         # Read input from Claude Code
         hook_input = read_hook_input()
 
-        # Extract session information
-        cwd = hook_input.get("cwd", "")
-        event_type = hook_input.get("event_type", "unknown")
+        # Extract session information (all available fields)
         session_id = hook_input.get("session_id", "")
+        transcript_path = hook_input.get("transcript_path", "")
+        permission_mode = hook_input.get("permission_mode", "default")
+        hook_event_name = hook_input.get("hook_event_name", "SessionStart")
+        source = hook_input.get("source", "unknown")  # startup, resume, clear, compact
+        cwd = hook_input.get("cwd", "")
 
-        # Only inject context on resume (after compaction) or startup
-        # Skip if this is a clear event
-        if event_type == "clear":
+        print(f"📋 [context-keeper] Source: {source}, Permission: {permission_mode}", file=sys.stderr)
+
+        # Only inject context on resume (after compaction) or compact
+        # Skip if this is a clear event (user explicitly cleared)
+        if source == "clear":
             print("ℹ️  [context-keeper] Skipping context injection (clear event)", file=sys.stderr)
+            print("=" * 60 + "\n", file=sys.stderr)
+            sys.exit(0)
+
+        # Skip on fresh startup - only load context on resume/compact
+        if source == "startup":
+            print("ℹ️  [context-keeper] Skipping context injection (fresh startup)", file=sys.stderr)
             print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(0)
 
@@ -189,7 +201,7 @@ def main():
 
         # Format and output context
         print("📥 [context-keeper] Loading context into session...", file=sys.stderr)
-        context = format_context(summary, metadata or {}, event_type)
+        context = format_context(summary, metadata or {}, source, permission_mode)
         print(context)
 
         # Print visible completion message
