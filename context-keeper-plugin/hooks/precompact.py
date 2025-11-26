@@ -356,14 +356,29 @@ def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str
     tool_calls = content.get('tool_calls', [])[:50]
     files_modified = content.get('files_modified', [])
 
+    # Build custom instructions section if provided
+    custom_instructions = session_info.get('custom_instructions', '')
+    custom_section = ""
+    if custom_instructions:
+        custom_section = f"""
+## User's Custom Instructions
+The user provided these specific instructions for this compaction:
+{custom_instructions}
+
+**Important:** Incorporate the user's custom instructions into your summary. Focus on what they've asked for.
+"""
+
     prompt = f"""Analyze this Claude Code session and create a comprehensive summary for future context restoration.
 
 ## Session Information
 - Session ID: {session_info.get('session_id', 'unknown')}
 - Project: {session_info.get('cwd', 'unknown')}
 - Trigger: {session_info.get('trigger', 'unknown')}
+- Permission Mode: {session_info.get('permission_mode', 'default')}
+- Hook Event: {session_info.get('hook_event_name', 'PreCompact')}
 - Timestamp: {session_info.get('timestamp', 'unknown')}
 - Total Messages: {content.get('message_count', 0)}
+{custom_section}
 
 ## User Messages (sample)
 {json.dumps(user_msgs[:10], indent=2, ensure_ascii=False)[:3000]}
@@ -454,14 +469,26 @@ def generate_summary_structured(content: dict, session_info: dict) -> str:
         tool = tc.get('tool', 'unknown')
         tool_counts[tool] = tool_counts.get(tool, 0) + 1
 
+    # Include custom instructions if provided
+    custom_instructions = session_info.get('custom_instructions', '')
+    custom_section = ""
+    if custom_instructions:
+        custom_section = f"""
+## Custom Instructions
+{custom_instructions}
+"""
+
     summary = f"""# Session Summary (Structured Extraction)
 
 ## Metadata
 - **Session ID:** {session_info.get('session_id', 'unknown')}
 - **Project:** {session_info.get('cwd', 'unknown')}
 - **Trigger:** {session_info.get('trigger', 'unknown')}
+- **Permission Mode:** {session_info.get('permission_mode', 'default')}
+- **Hook Event:** {session_info.get('hook_event_name', 'PreCompact')}
 - **Timestamp:** {session_info.get('timestamp', 'unknown')}
 - **Total Messages:** {content.get('message_count', 0)}
+{custom_section}
 
 ## Files Modified
 {chr(10).join(f'- `{f}`' for f in files_modified) if files_modified else '- None tracked'}
@@ -762,11 +789,14 @@ def main():
             print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(1)
 
-        # Extract session information
+        # Extract session information (all available fields)
         session_id = hook_input.get("session_id", "unknown")
         transcript_path = hook_input.get("transcript_path", "")
         trigger = hook_input.get("trigger", "unknown")
         cwd = hook_input.get("cwd", os.getcwd())
+        permission_mode = hook_input.get("permission_mode", "default")
+        hook_event_name = hook_input.get("hook_event_name", "PreCompact")
+        custom_instructions = hook_input.get("custom_instructions", "")
 
         print(f"📋 [context-keeper] Processing session {session_id[:8]}... (trigger: {trigger})", file=sys.stderr)
 
@@ -788,13 +818,20 @@ def main():
         # Extract content
         content = extract_conversation_content(messages)
 
-        # Prepare session info
+        # Prepare session info (include all available fields)
         session_info = {
             "session_id": session_id,
             "trigger": trigger,
             "cwd": cwd,
-            "timestamp": datetime.now().astimezone().isoformat()
+            "timestamp": datetime.now().astimezone().isoformat(),
+            "permission_mode": permission_mode,
+            "hook_event_name": hook_event_name,
+            "custom_instructions": custom_instructions
         }
+
+        # Show custom instructions if provided
+        if custom_instructions:
+            print(f"📝 [context-keeper] Custom instructions: {custom_instructions[:50]}{'...' if len(custom_instructions) > 50 else ''}", file=sys.stderr)
 
         # Generate summary
         print("🤖 [context-keeper] Generating summary with AI...", file=sys.stderr)
