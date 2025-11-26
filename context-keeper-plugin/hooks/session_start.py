@@ -20,31 +20,6 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-# Debug log file path
-DEBUG_LOG_PATH = Path.home() / ".claude" / "session-start-debug.log"
-
-
-def _write_to_debug_log(message: str):
-    """Append message to debug log file."""
-    try:
-        with open(DEBUG_LOG_PATH, 'a', encoding='utf-8') as f:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"[{timestamp}] {message}\n")
-    except Exception:
-        pass  # Silently ignore log failures
-
-
-def log_debug(message: str):
-    """Log debug info to debug file and stderr."""
-    _write_to_debug_log(f"DEBUG: {message}")
-    print(f"[SessionStart Debug] {message}", file=sys.stderr)
-
-
-def log_info(message: str):
-    """Log info to debug file and stderr."""
-    _write_to_debug_log(f"INFO: {message}")
-    print(f"[SessionStart] {message}", file=sys.stderr)
-
 
 def read_hook_input() -> dict:
     """Read JSON input from stdin."""
@@ -53,12 +28,6 @@ def read_hook_input() -> dict:
         return json.loads(input_data) if input_data.strip() else {}
     except json.JSONDecodeError:
         return {}
-
-
-def log_error(message: str):
-    """Log error to stderr and debug file."""
-    _write_to_debug_log(f"ERROR: {message}")
-    print(f"[SessionStart Error] {message}", file=sys.stderr)
 
 
 def get_summaries_dir(project_path: str) -> Path:
@@ -124,7 +93,7 @@ def load_latest_summary(project_path: str, session_id: str = None) -> tuple[str,
             return summary, latest
 
     except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
-        log_error(f"Failed to load from index: {e}")
+        print(f"[context-keeper] Error: Failed to load from index: {e}", file=sys.stderr)
 
     return None, None
 
@@ -161,47 +130,43 @@ This context was automatically loaded from a previous session summary.
 
 
 def main():
-    log_debug("=" * 60)
-    log_debug("=== SESSION START HOOK RUNNING ===")
-    log_debug(f"Python version: {sys.version}")
-    log_debug(f"Script path: {__file__}")
-    log_debug("=" * 60)
+    # Print visible banner to stderr
+    print("\n" + "=" * 60, file=sys.stderr)
+    print("🔄 [context-keeper] Session Start Hook Running...", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
 
     try:
         # Read input from Claude Code
-        log_debug("Reading hook input from stdin...")
         hook_input = read_hook_input()
-        log_debug(f"Hook input received: {bool(hook_input)}")
 
         # Extract session information
         cwd = hook_input.get("cwd", "")
         event_type = hook_input.get("event_type", "unknown")
         session_id = hook_input.get("session_id", "")
 
-        log_debug(f"Session ID: {session_id}")
-        log_debug(f"Event type: {event_type}")
-        log_debug(f"CWD: {cwd}")
-
         # Only inject context on resume (after compaction) or startup
         # Skip if this is a clear event
         if event_type == "clear":
-            log_info("Skipping context injection (clear event)")
+            print("ℹ️  [context-keeper] Skipping context injection (clear event)", file=sys.stderr)
+            print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(0)
 
         if not cwd:
-            log_info("Skipping context injection (no cwd)")
+            print("ℹ️  [context-keeper] Skipping context injection (no cwd)", file=sys.stderr)
+            print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(0)
 
         # Load latest summary
-        log_debug("Loading latest summary...")
+        print("📂 [context-keeper] Searching for previous session context...", file=sys.stderr)
         summary, metadata = load_latest_summary(cwd, session_id)
 
         if not summary:
             # No summary available - this is fine, just exit cleanly
-            log_info("No summary available, skipping context injection")
+            print("ℹ️  [context-keeper] No previous session context found", file=sys.stderr)
+            print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(0)
 
-        log_info(f"Found summary for session {session_id[:8] if session_id else 'unknown'}...")
+        print(f"📄 [context-keeper] Found context for session {session_id[:8] if session_id else 'unknown'}...", file=sys.stderr)
 
         # Check if this summary is recent enough to be relevant
         # Skip if the summary is from a very old session (>24 hours)
@@ -215,31 +180,27 @@ def main():
 
                 if age_hours > 24:
                     # Summary is old, skip injection but don't error
-                    log_info(f"Summary is {age_hours:.1f} hours old, skipping (>24h)")
+                    print(f"ℹ️  [context-keeper] Context is {age_hours:.1f}h old, skipping (>24h)", file=sys.stderr)
+                    print("=" * 60 + "\n", file=sys.stderr)
                     sys.exit(0)
-                log_debug(f"Summary age: {age_hours:.1f} hours")
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             # Can't parse date, continue anyway
-            log_debug(f"Could not parse summary timestamp: {e}")
             pass
 
         # Format and output context
-        log_debug("Formatting context for injection...")
+        print("📥 [context-keeper] Loading context into session...", file=sys.stderr)
         context = format_context(summary, metadata or {}, event_type)
         print(context)
 
-        log_info("Context injected successfully")
-        log_debug("=" * 60)
-        log_debug("=== SESSION START HOOK COMPLETED ===")
-        log_debug("=" * 60)
+        # Print visible completion message
+        print("✅ [context-keeper] Previous session context loaded successfully!", file=sys.stderr)
+        print("=" * 60 + "\n", file=sys.stderr)
 
         sys.exit(0)
 
     except Exception as e:
-        log_error(f"Unexpected error: {e}")
-        log_debug("=== SESSION START HOOK FAILED ===")
-        import traceback
-        _write_to_debug_log(traceback.format_exc())
+        print(f"❌ [context-keeper] Error: {e}", file=sys.stderr)
+        print("=" * 60 + "\n", file=sys.stderr)
         sys.exit(1)
 
 
