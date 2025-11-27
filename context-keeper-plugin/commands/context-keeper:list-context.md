@@ -12,15 +12,9 @@ Display saved context summaries from the context-keeper plugin.
 
 - `$ARGUMENTS` - Optional session ID to filter contexts. If omitted, lists ALL individual contexts across ALL sessions.
 
-## Instructions
+## Automatic Execution
 
-When this command is invoked, run the Python script located at `scripts/list_context.py` relative to the plugin directory.
-
-```bash
-python3 "$(dirname "$0")/../scripts/list_context.py" $ARGUMENTS
-```
-
-The script uses `jq` subprocess for efficient JSON extraction from index.json, with fallback to full JSON parsing if jq is unavailable.
+This command is automatically executed via the **PreToolUse hook** when invoked. The hook intercepts the slash command and runs `scripts/list_context.py` with any arguments. Uses `jq` for efficient JSON extraction with Python fallback.
 
 ## Output Format
 

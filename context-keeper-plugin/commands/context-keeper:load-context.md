@@ -12,15 +12,9 @@ Load a previous context summary to restore conversation state from before compac
 
 - `$ARGUMENTS` - Optional session ID or timestamp to load. If omitted, loads the most recent summary.
 
-## Instructions
+## Automatic Execution
 
-When this command is invoked, run the Python script located at `scripts/load_context.py` relative to the plugin directory.
-
-```bash
-python3 "$(dirname "$0")/../scripts/load_context.py" $ARGUMENTS
-```
-
-The script uses `jq` subprocess for efficient JSON extraction from index.json, with fallback to full JSON parsing if jq is unavailable.
+This command is automatically executed via the **PreToolUse hook** when invoked. The hook intercepts the slash command and runs `scripts/load_context.py` with any arguments. Uses `jq` for efficient JSON extraction with Python fallback.
 
 ## Usage Examples
 

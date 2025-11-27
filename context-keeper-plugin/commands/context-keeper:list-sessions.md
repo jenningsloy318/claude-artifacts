@@ -7,15 +7,9 @@ description: Enumerate all stored sessions with their context summaries
 
 Display all stored sessions that have context summaries saved by the context-keeper plugin.
 
-## Instructions
+## Automatic Execution
 
-When this command is invoked, run the Python script located at `scripts/list_sessions.py` relative to the plugin directory.
-
-```bash
-python3 "$(dirname "$0")/../scripts/list_sessions.py"
-```
-
-The script uses `jq` subprocess for efficient JSON extraction from index.json, with fallback to full JSON parsing if jq is unavailable.
+This command is automatically executed via the **PreToolUse hook** when invoked. The hook intercepts the slash command and runs `scripts/list_sessions.py` which uses `jq` for efficient JSON extraction with Python fallback.
 
 ## Output Format
 

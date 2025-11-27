@@ -1,7 +1,7 @@
 {
   "name": "context-keeper",
   "description": "Automatically summarize and persist conversation context before compaction, with automatic context restoration on resume",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Jennings L",
     "email": "jennings@example.com"
@@ -11,6 +11,18 @@
   "license": "MIT",
   "keywords": ["context", "keeper", "persistence", "memory", "compaction", "summary", "continuity"],
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "SlashCommand",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/command_hook.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
     "PreCompact": [
       {
         "matcher": "*",
