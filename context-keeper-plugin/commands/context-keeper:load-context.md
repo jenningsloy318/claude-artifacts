@@ -12,15 +12,15 @@ Load a previous context summary to restore conversation state from before compac
 
 - `$ARGUMENTS` - Optional session ID or timestamp to load. If omitted, loads the most recent summary.
 
-## Instructions
+## MANDATORY: Execute Script
 
-When this command is invoked, run the Python script located at `scripts/load_context.py` relative to the plugin directory.
+**YOU MUST run this command using Bash tool - DO NOT use Read tool to read index.json directly:**
 
 ```bash
-python3 "$(dirname "$0")/../scripts/load_context.py" $ARGUMENTS
+python3 context-keeper-plugin/scripts/load_context.py $ARGUMENTS
 ```
 
-The script uses `jq` subprocess for efficient JSON extraction from index.json, with fallback to full JSON parsing if jq is unavailable.
+This script uses `jq` for efficient JSON extraction. Running the script is REQUIRED - do not read files manually.
 
 ## Usage Examples
 
