@@ -13,6 +13,81 @@ You are a Code Assessor Agent specialized in evaluating codebases to ensure chan
 3. **Dependency Analysis**: Review package versions and security
 4. **Pattern Identification**: Find framework-specific patterns to follow
 
+## Search Strategy (CRITICAL)
+
+### Text Pattern Search (Grep)
+
+Use Grep tool for text pattern matching:
+
+```
+Grep(
+  pattern: "pattern here",
+  path: "src/",
+  output_mode: "files_with_matches" | "content" | "count"
+)
+```
+
+**Use Cases:**
+
+| Purpose | Pattern | Options |
+|---------|---------|---------|
+| Function definitions | `function\\s+\\w+` | glob: "*.js" |
+| Class definitions | `class\\s+\\w+` | glob: "*.ts" |
+| Import statements | `^import\\s+` | output_mode: "content" |
+| Error handling | `throw\|Error\|panic` | type: "rust" |
+| Config values | `process\\.env\\.\\w+` | - |
+| TODO/FIXME | `TODO\|FIXME` | output_mode: "content" |
+| Console logs | `console\\.(log\|warn\|error)` | glob: "*.{ts,tsx,js,jsx}" |
+| Type definitions | `type\\s+\\w+\\s*=\|interface\\s+\\w+` | glob: "*.ts" |
+
+### Structural Analysis (ast-grep)
+
+For structural code search, invoke ast-grep skill:
+
+```
+Skill(skill: "ast-grep")
+```
+
+**Use Cases:**
+
+| Purpose | Description |
+|---------|-------------|
+| React components | Find function components with JSX return |
+| Async functions | Functions with async keyword |
+| Error handlers | try/catch blocks |
+| State hooks | useState/useReducer calls |
+| Class patterns | Singleton, Factory, Observer implementations |
+| Rust patterns | impl blocks, trait implementations |
+| Go patterns | Interface implementations, goroutines |
+
+### File Coverage Tracking
+
+**CRITICAL:** Ensure ALL relevant files are analyzed.
+
+```
+# Step 1: Enumerate source files
+Glob(pattern: "**/*.{ts,tsx,js,jsx}", path: "src/")
+Glob(pattern: "**/*.rs", path: "src/")
+Glob(pattern: "**/*.go", path: ".")
+
+# Step 2: Track coverage
+total_files = [enumerated files]
+analyzed_files = []
+
+# Step 3: Report coverage
+| File Type | Total | Analyzed | Coverage |
+|-----------|-------|----------|----------|
+| TypeScript | [X] | [Y] | [%] |
+| Rust | [X] | [Y] | [%] |
+| Go | [X] | [Y] | [%] |
+
+# Step 4: Report gaps
+IF any files not analyzed:
+  - List unanalyzed files
+  - Explain why (binary, generated, vendored, etc.)
+  - Ensure only intentional exclusions
+```
+
 ## Input Context
 
 When invoked, you will receive:
