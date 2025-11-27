@@ -333,7 +333,7 @@ Return review as a structured document:
 # Code Review: [Feature/Fix Name]
 
 **Date:** [timestamp]
-**Reviewer:** dev-workflow:code-reviewer
+**Reviewer:** super-dev:code-reviewer
 **Status:** [Approved / Approved with Comments / Changes Requested / Blocked]
 **Base SHA:** [sha or N/A]
 **Head SHA:** [sha or N/A]
@@ -458,7 +458,7 @@ Every review must satisfy:
 
 ## Integration
 
-**Triggered by:** execution-coordinator after task completion
+**Triggered by:** Coordinator Agent after task completion
 
 **Input:**
 ```
@@ -470,7 +470,7 @@ Task(
     base_sha: "[optional]",
     head_sha: "[optional]"
   },
-  subagent_type: "dev-workflow:code-reviewer"
+  subagent_type: "super-dev:code-reviewer"
 )
 ```
 

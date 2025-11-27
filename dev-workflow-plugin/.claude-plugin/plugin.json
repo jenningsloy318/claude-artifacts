@@ -1,7 +1,7 @@
 {
-  "name": "dev-workflow",
-  "description": "Comprehensive development workflow for implementing features, fixing bugs, and refactoring code with structured phases",
-  "version": "1.0.0",
+  "name": "super-dev",
+  "description": "Coordinator-driven development workflow with parallel agent execution for implementing features, fixing bugs, and refactoring code",
+  "version": "2.0.0",
   "author": {
     "name": "Jennings L",
     "email": "jennings@example.com"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/jenningsloy318/super-skill-claude-artifacts",
   "repository": "https://github.com/jenningsloy318/super-skill-claude-artifacts",
   "license": "MIT",
-  "keywords": ["development", "workflow", "debugging", "implementation", "refactoring", "specification"]
+  "keywords": ["development", "workflow", "debugging", "implementation", "refactoring", "specification", "coordinator", "parallel"]
 }

@@ -113,7 +113,7 @@ Use search-agent for all retrieval:
 Task(
   prompt: "Search for [query]",
   context: { mode: "code" | "docs" | "academic" | "web" | "all" },
-  subagent_type: "dev-workflow:search-agent"
+  subagent_type: "super-dev:search-agent"
 )
 ```
 

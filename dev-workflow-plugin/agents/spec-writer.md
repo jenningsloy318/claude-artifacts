@@ -351,7 +351,7 @@ interface DataModel {
   - **Acceptance:** Docs reflect changes
 
 - [ ] **TF.3** Code review
-  - **Agent:** `dev-workflow:code-reviewer`
+  - **Agent:** `super-dev:code-reviewer`
   - **Acceptance:** No blocking issues
 
 - [ ] **TF.4** Commit and push changes

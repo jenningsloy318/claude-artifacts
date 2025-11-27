@@ -1,42 +1,45 @@
 ---
-name: dev-workflow:fix-impl
-description: Execute the complete development workflow for implementing features or fixing bugs
+name: super-dev:fix-impl
+description: Execute the complete coordinator-driven development workflow for implementing features or fixing bugs
 ---
 
-# Development Workflow Command
+# Super Dev Workflow Command
 
-This command orchestrates the complete development workflow.
+This command orchestrates the complete coordinator-driven development workflow.
 
 ## Usage
 
 ```
-/dev-workflow:fix-impl [description of task]
+/super-dev:fix-impl [description of task]
 ```
 
 ## What This Command Does
 
-When invoked, this command activates the `dev-workflow:dev-workflow` skill which guides through all 11 phases:
+When invoked, this command activates the `super-dev:coordinator` agent which orchestrates all 12 phases:
 
-1. **Specification Setup** - Find or create spec directory
-2. **Requirements Clarification** - Gather complete requirements
-3. **Research** - Find best practices and documentation
-4. **Debug Analysis** - Root cause analysis (bugs only)
-5. **Code Assessment** - Evaluate existing codebase
-6. **Specification Writing** - Create tech spec, plan, tasks
-7. **Specification Review** - Validate all documents
-8. **Execution** - Implement with parallel agents
-9. **Coordination** - Sequential task completion
-10. **Cleanup** - Remove temporary files
-11. **Commit & Push** - Save changes to repository
+1. **Phase 0: Apply Dev Rules** - Establish coding standards
+2. **Phase 1: Specification Setup** - Find or create spec directory
+3. **Phase 2: Requirements Clarification** - Gather complete requirements
+4. **Phase 3: Research** - Find best practices with Time MCP
+5. **Phase 4: Debug Analysis** - Root cause analysis (bugs only, uses grep/ast-grep)
+6. **Phase 5: Code Assessment** - Evaluate existing codebase (uses grep/ast-grep)
+7. **Phase 5.3: Architecture Design** - For complex features (optional)
+8. **Phase 5.5: UI/UX Design** - For features with UI (optional)
+9. **Phase 6: Specification Writing** - Create tech spec, plan, tasks
+10. **Phase 7: Specification Review** - Validate all documents
+11. **Phase 8-9: Execution** - PARALLEL agents (dev + qa + docs)
+12. **Phase 9.5: Quality Assurance** - Modality-specific testing
+13. **Phase 10-11: Cleanup & Commit** - Remove temp files, commit changes
+14. **Phase 12: Final Verification** - Coordinator verifies all complete
 
 ## Instructions
 
 When this command is invoked:
 
-1. **Activate main skill**: Use `dev-workflow:dev-workflow` skill
-2. **Apply dev rules**: Use `dev-workflow:dev-rules` throughout
-3. **Follow phases sequentially** unless user indicates to skip
-4. **Use sub-skills** for each phase as documented
+1. **Invoke Coordinator**: Use `super-dev:coordinator` agent
+2. **Apply dev rules**: Coordinator applies `super-dev:dev-rules` at Phase 0
+3. **Coordinator orchestrates** all phases automatically
+4. **Parallel execution** during Phases 8-9 (dev, qa, docs agents)
 5. **Track progress** with TodoWrite tool
 
 ## Arguments
@@ -50,14 +53,16 @@ When this command is invoked:
 ## Example Invocations
 
 ```
-/dev-workflow:fix-impl Fix the login button not responding on mobile
-/dev-workflow:fix-impl Implement user profile page with avatar upload
-/dev-workflow:fix-impl Refactor the authentication module for better testability
-/dev-workflow:fix-impl Improve API response time for product listing
+/super-dev:fix-impl Fix the login button not responding on mobile
+/super-dev:fix-impl Implement user profile page with avatar upload
+/super-dev:fix-impl Refactor the authentication module for better testability
+/super-dev:fix-impl Improve API response time for product listing
 ```
 
 ## Notes
 
-- This workflow is comprehensive - for quick fixes, user may request to skip phases
+- The Coordinator Agent is the central authority that orchestrates ALL phases
+- Parallel execution (dev + qa + docs) maximizes efficiency
+- Build queue policy: For Rust/Go, only ONE build at a time
 - All documents are created in `specification/[index]-[name]/` directory
-- Final step always includes commit and push
+- Final verification ensures no missing code or documents
