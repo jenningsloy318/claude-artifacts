@@ -613,21 +613,24 @@ def extract_topics_from_summary(summary: str) -> list[str]:
 
 # ============================================================================
 # Nowledge MCP Integration (HttpConnector)
+# Follows pattern from: specification/11-mcp-http-connector/template_connector.py
 # ============================================================================
 
+# Server pattern to match in Claude Code config (lowercase)
+NOWLEDGE_SERVER_PATTERN = "nowledge"
 
-def find_nowledge_config() -> dict | None:
-    """
-    Find nowledge-mem MCP config from Claude Code settings.
 
-    Searches for HTTP-based nowledge MCP server in:
-    1. ~/.claude.json (primary)
-    2. ~/.claude/settings.json
-    3. ~/.claude/settings.local.json
-    4. .claude/settings.json (project)
-    5. .claude/settings.local.json (project)
+def find_mcp_config(server_pattern: str) -> dict | None:
+    """Find MCP server config from Claude Code settings.
 
-    Returns dict with {name, url, headers} or None if not found.
+    This function follows the standard MCP HTTP Connector pattern from
+    specification/11-mcp-http-connector/template_connector.py
+
+    Args:
+        server_pattern: Lowercase pattern to match server name
+
+    Returns:
+        Dict with name, url, headers if found, None otherwise
     """
     config_paths = [
         Path.home() / ".claude.json",
@@ -646,14 +649,13 @@ def find_nowledge_config() -> dict | None:
                 mcp_servers = config.get("mcpServers", {})
 
                 for name, server_config in mcp_servers.items():
-                    # Match nowledge-mem or nowledge pattern
-                    if "nowledge" in name.lower():
+                    if server_pattern in name.lower():
+                        # Accept http or streamableHttp types for HTTP-based servers
                         server_type = server_config.get("type", "")
-                        # Accept http, streamableHttp types
                         if server_type in ("http", "streamableHttp"):
                             return {
                                 "name": name,
-                                "url": server_config.get("url", ""),
+                                "url": server_config.get("url"),
                                 "headers": server_config.get("headers", {})
                             }
             except (json.JSONDecodeError, IOError):
@@ -662,73 +664,51 @@ def find_nowledge_config() -> dict | None:
     return None
 
 
-def persist_to_nowledge(summary: str, metadata: dict, content: dict) -> bool:
+async def call_nowledge_tools(mcp_config: dict, summary: str, metadata: dict) -> dict:
+    """Call nowledge MCP tools via HttpConnector.
+
+    This function follows the standard MCP HTTP Connector pattern from
+    specification/11-mcp-http-connector/template_connector.py
+
+    Args:
+        mcp_config: Dict with name, url, headers from find_mcp_config()
+        summary: Session summary to persist
+        metadata: Session metadata
+
+    Returns:
+        Dict with success status for each tool
     """
-    Persist memory and thread to nowledge MCP server using HttpConnector.
+    from mcp_use.client.connectors import HttpConnector
 
-    Uses mcp-use HttpConnector to connect to existing HTTP MCP server:
-    - memory_add: Add distilled memory with key insights
-    - thread_persist: Save full conversation thread
+    url = mcp_config.get("url")
+    headers = mcp_config.get("headers", {})
+    results = {"memory": False, "thread": False}
 
-    Returns True if successful, False otherwise.
-    Non-blocking - failures don't affect local summary storage.
-    """
-    log_debug("=== persist_to_nowledge() START ===")
+    if not url:
+        log_debug("MCP server URL not found in config")
+        return results
 
-    # Find nowledge config from Claude Code settings
-    nowledge_config = find_nowledge_config()
-    if not nowledge_config:
-        log_debug("Nowledge MCP config not found in Claude Code settings")
-        log_debug("=== persist_to_nowledge() END (no config) ===")
-        return False
-
-    log_debug(f"Found nowledge config: {nowledge_config['name']} at {nowledge_config['url']}")
-
-    # Check if mcp-use is installed
-    if not _ensure_package_installed("mcp-use"):
-        log_debug("mcp-use not available, skipping nowledge integration")
-        return False
-
+    connector = None
     try:
-        import asyncio
-        from mcp_use.client.connectors import HttpConnector
+        # Create HttpConnector and connect
+        connector = HttpConnector(base_url=url, headers=headers)
+        await connector.connect()
 
-        log_debug("mcp-use HttpConnector imported successfully")
-    except ImportError as e:
-        log_debug(f"Failed to import mcp-use HttpConnector: {e}")
-        return False
+        # List available tools (useful for debugging)
+        tools = await connector.list_tools()
+        tool_names = [t.name for t in tools]
+        log_debug(f"Available tools: {tool_names}")
 
-    async def _persist_async():
-        """Async function to call nowledge MCP tools via HttpConnector."""
-        results = {"memory": False, "thread": False}
+        # 1. Add memory with distilled insights
+        if "memory_add" in tool_names:
+            log_debug("Calling memory_add...")
+            try:
+                topics = metadata.get("topics", [])
+                files_modified = metadata.get("files_modified", [])
+                session_id = metadata.get("session_id", "unknown")
+                project = metadata.get("cwd", "unknown")
 
-        connector = HttpConnector(
-            base_url=nowledge_config["url"],
-            headers=nowledge_config["headers"]
-        )
-
-        try:
-            log_debug("Connecting to nowledge MCP server...")
-            await connector.connect()
-
-            # List available tools to verify connection
-            log_debug("Listing available tools...")
-            tools = await connector.list_tools()
-            tool_names = [t.name for t in tools]
-            log_debug(f"Available tools: {tool_names}")
-
-            # 1. Add memory with distilled insights
-            if "memory_add" in tool_names:
-                log_debug("Calling memory_add...")
-                try:
-                    # Extract key insights for memory
-                    topics = metadata.get("topics", [])
-                    files_modified = metadata.get("files_modified", [])
-                    session_id = metadata.get("session_id", "unknown")
-                    project = metadata.get("cwd", "unknown")
-
-                    # Create a concise memory content
-                    memory_content = f"""Session {session_id[:8]} - {project}
+                memory_content = f"""Session {session_id[:8]} - {project}
 
 Key topics: {', '.join(topics[:5]) if topics else 'None'}
 Files modified: {len(files_modified)}
@@ -737,74 +717,114 @@ Message count: {metadata.get('message_count', 0)}
 Summary excerpt:
 {summary[:1500]}"""
 
-                    memory_result = await connector.call_tool(
-                        name="memory_add",
-                        arguments={
-                            "content": memory_content,
-                            "title": f"Claude Code Session: {', '.join(topics[:3]) if topics else session_id[:8]}",
-                            "importance": 0.7,
-                            "labels": ",".join(["claude-code", "session-summary"] + topics[:3]),
-                            "source": "context-keeper-precompact"
-                        }
-                    )
-                    log_debug(f"memory_add result: {memory_result}")
-                    results["memory"] = True
-                    log_info("Memory persisted to nowledge")
-                except Exception as e:
-                    log_debug(f"memory_add failed: {e}")
+                result = await connector.call_tool(
+                    name="memory_add",
+                    arguments={
+                        "content": memory_content,
+                        "title": f"Claude Code Session: {', '.join(topics[:3]) if topics else session_id[:8]}",
+                        "importance": 0.7,
+                        "labels": ",".join(["claude-code", "session-summary"] + topics[:3]),
+                        "source": "context-keeper-precompact"
+                    }
+                )
+                log_debug(f"memory_add result: {result}")
+                results["memory"] = True
+                log_info("Memory persisted to nowledge")
+            except Exception as e:
+                log_debug(f"memory_add failed: {e}")
 
-            # 2. Persist full thread
-            if "thread_persist" in tool_names:
-                log_debug("Calling thread_persist...")
-                try:
-                    thread_result = await connector.call_tool(
-                        name="thread_persist",
-                        arguments={
-                            "client": "claude-code",
-                            "project_path": metadata.get("cwd", ""),
-                            "persist_mode": "current",
-                            "summary": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(metadata.get('topics', [])[:3])}"[:100]
-                        }
-                    )
-                    log_debug(f"thread_persist result: {thread_result}")
-                    results["thread"] = True
-                    log_info("Thread persisted to nowledge")
-                except Exception as e:
-                    log_debug(f"thread_persist failed: {e}")
+        # 2. Persist full thread
+        if "thread_persist" in tool_names:
+            log_debug("Calling thread_persist...")
+            try:
+                result = await connector.call_tool(
+                    name="thread_persist",
+                    arguments={
+                        "client": "claude-code",
+                        "project_path": metadata.get("cwd", ""),
+                        "persist_mode": "current",
+                        "summary": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(metadata.get('topics', [])[:3])}"[:100]
+                    }
+                )
+                log_debug(f"thread_persist result: {result}")
+                results["thread"] = True
+                log_info("Thread persisted to nowledge")
+            except Exception as e:
+                log_debug(f"thread_persist failed: {e}")
 
-            return results
+        return results
 
-        except Exception as e:
-            log_debug(f"HttpConnector error: {e}")
-            return results
-        finally:
+    except Exception as e:
+        log_debug(f"HttpConnector error: {e}")
+        return results
+    finally:
+        if connector:
             try:
                 await connector.disconnect()
             except Exception:
                 pass
 
-    # Run the async function
+
+def persist_to_nowledge(summary: str, metadata: dict, content: dict) -> bool:
+    """
+    Persist memory and thread to nowledge MCP server using HttpConnector.
+
+    Uses mcp-use HttpConnector to connect to existing HTTP MCP server.
+    Follows pattern from: specification/11-mcp-http-connector/
+
+    Returns True if successful, False otherwise.
+    Non-blocking - failures don't affect local summary storage.
+    """
+    log_debug("=== persist_to_nowledge() START ===")
+
+    # Find server config using standard pattern
+    mcp_config = find_mcp_config(NOWLEDGE_SERVER_PATTERN)
+    if not mcp_config:
+        log_debug(f"HTTP MCP server matching '{NOWLEDGE_SERVER_PATTERN}' not found in Claude Code settings")
+        log_debug("=== persist_to_nowledge() END (no config) ===")
+        return False
+
+    log_debug(f"Found config: {mcp_config['name']} at {mcp_config['url']}")
+
+    # Check if mcp-use is installed
+    if not _ensure_package_installed("mcp-use"):
+        log_debug("mcp-use not available, skipping nowledge integration")
+        return False
+
     try:
-        # Extract host and port from URL for connectivity check
+        from mcp_use.client.connectors import HttpConnector
+        log_debug("mcp-use HttpConnector imported successfully")
+    except ImportError as e:
+        log_debug(f"Failed to import mcp-use HttpConnector: {e}")
+        return False
+
+    # Check server connectivity before attempting connection
+    try:
         from urllib.parse import urlparse
-        parsed = urlparse(nowledge_config["url"])
+        import socket
+
+        parsed = urlparse(mcp_config["url"])
         host = parsed.hostname or "localhost"
         port = parsed.port or 80
 
-        # Check if nowledge server is reachable first
-        import socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2)
         result = sock.connect_ex((host, port))
         sock.close()
 
         if result != 0:
-            log_debug(f"Nowledge MCP server not reachable at {host}:{port}")
+            log_debug(f"MCP server not reachable at {host}:{port}")
             log_debug("=== persist_to_nowledge() END (server not running) ===")
             return False
+    except Exception as e:
+        log_debug(f"Connectivity check failed: {e}")
+        return False
 
-        log_debug("Nowledge server is reachable, proceeding with persistence...")
-        results = asyncio.run(_persist_async())
+    # Run async tool calls
+    try:
+        import asyncio
+        log_debug("Calling nowledge tools...")
+        results = asyncio.run(call_nowledge_tools(mcp_config, summary, metadata))
         success = results.get("memory", False) or results.get("thread", False)
         log_debug(f"=== persist_to_nowledge() END (success={success}) ===")
         return success
