@@ -57,11 +57,10 @@ pip install anthropic
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `CLAUDE_SUMMARY_API_KEY` | API key for Claude LLM summarization | No (has fallback) |
-| `ANTHROPIC_API_KEY` | Fallback API key | No |
+| `CLAUDE_SUMMARY_API_KEY` | Dedicated API key for Claude LLM summarization | No |
 | `CLAUDE_SUMMARY_API_URL` | Custom API base URL (for proxy or regional endpoints) | No |
 
-**Note**: Without an API key, the plugin will use structured extraction (keyword-based summary) instead of LLM-generated summaries.
+**Note**: Without `CLAUDE_SUMMARY_API_KEY`, the plugin will use structured extraction (keyword-based summary) instead of LLM-generated summaries.
 
 ### Setting Environment Variables
 
@@ -180,6 +179,13 @@ MIT License - See [LICENSE](LICENSE) for details.
 Contributions welcome! Please open an issue or submit a pull request at https://github.com/jenningsloy318/super-skill-claude-artifacts
 
 ## Changelog
+
+### v1.1.0
+
+- Remove `ANTHROPIC_API_KEY` fallback
+- Use dedicated `CLAUDE_SUMMARY_API_KEY` exclusively for summarization
+- Simplify configuration with single API key requirement
+- Add nowledge MCP integration via HttpConnector
 
 ### v1.0.0
 
