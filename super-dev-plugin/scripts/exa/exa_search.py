@@ -5,7 +5,7 @@ Exa Web Search Script: Execute web searches using Exa MCP server.
 This script wraps the Exa MCP server's web_search_exa tool, allowing agents
 to perform searches by executing this script via Bash.
 
-Uses mcp-use library for MCP client connection.
+Uses mcp-use library for MCP client connection (auto-installs if missing).
 Based on the "Code Execution with MCP" pattern from Anthropic.
 
 Usage:
@@ -22,18 +22,47 @@ import argparse
 import asyncio
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime
 
 
+def ensure_mcp_use_installed():
+    """Ensure mcp-use package is installed, install if missing."""
+    try:
+        import mcp_use
+        return True
+    except ImportError:
+        print("Installing mcp-use package...", file=sys.stderr)
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "mcp-use", "-q"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            print("mcp-use installed successfully.", file=sys.stderr)
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to install mcp-use: {e}", file=sys.stderr)
+            return False
+
+
 async def search_with_mcp(query: str, search_type: str, num_results: int, context_chars: int) -> dict:
     """Execute search using mcp-use client connection to Exa server."""
+    # Ensure mcp-use is installed
+    if not ensure_mcp_use_installed():
+        return {
+            "success": False,
+            "error": "Failed to install mcp-use package. Run manually: pip install mcp-use",
+            "error_type": "DependencyError"
+        }
+
     try:
         from mcp_use import MCPClient
     except ImportError:
         return {
             "success": False,
-            "error": "mcp-use package not installed. Run: pip install mcp-use",
+            "error": "mcp-use package import failed after installation. Please restart and try again.",
             "error_type": "DependencyError"
         }
 
