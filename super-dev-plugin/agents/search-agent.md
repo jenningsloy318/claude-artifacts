@@ -43,32 +43,72 @@ Original: "React state management"
 
 ### Step 3: Tool Selection by Mode
 
+**MANDATORY RULE:** Use HTTP Connector Scripts (via Bash) instead of direct MCP tool calls for ALL online searches. This ensures token efficiency and consistent output formatting.
+
 **Code Mode:**
-- `mcp__exa__get_code_context_exa` - Library docs, code examples
-- `mcp__github__search_code` - GitHub code patterns
-- `mcp__context7__get-library-docs` - Official documentation
-- `mcp__deepwiki__ask_question` - GitHub repo Q&A
+```bash
+# Exa code context
+python3 super-dev-plugin/scripts/exa/exa_code.py --query "[query]" --tokens 10000
+
+# GitHub code search
+python3 super-dev-plugin/scripts/github/github_search_code.py --query "[query] language:[lang]" --per-page 10
+
+# Context7 library docs
+python3 super-dev-plugin/scripts/context7/context7_resolve.py --library "[library]"
+python3 super-dev-plugin/scripts/context7/context7_docs.py --library-id "[id]" --mode code --topic "[topic]"
+
+# DeepWiki repo Q&A
+python3 super-dev-plugin/scripts/deepwiki/deepwiki_ask.py --repo "[owner/repo]" --question "[question]"
+```
 
 **Docs Mode:**
-- `mcp__context7__resolve-library-id` + `get-library-docs`
-- `mcp__deepwiki__read_wiki_contents`
-- `mcp__exa__web_search_exa` (filtered to docs sites)
+```bash
+# Context7 for library documentation
+python3 super-dev-plugin/scripts/context7/context7_resolve.py --library "[library]"
+python3 super-dev-plugin/scripts/context7/context7_docs.py --library-id "[id]" --mode info
+
+# DeepWiki for repo documentation
+python3 super-dev-plugin/scripts/deepwiki/deepwiki_structure.py --repo "[owner/repo]"
+python3 super-dev-plugin/scripts/deepwiki/deepwiki_contents.py --repo "[owner/repo]"
+
+# Exa web search (filtered to docs)
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query] site:docs" --type deep --results 10
+```
 
 **Academic Mode:**
-- `mcp__exa__web_search_exa` (arxiv, papers)
-- `WebSearch` (scholar.google.com, arxiv.org)
+```bash
+# Exa for academic papers
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query] arxiv OR paper" --type deep --results 10
+```
 
 **Web Mode:**
-- `mcp__exa__web_search_exa`
-- `WebSearch`
+```bash
+# Exa web search
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query]" --type auto --results 10
+```
 
 **Social/Community Mode:**
-- `mcp__exa__web_search_exa` (filtered to reddit.com) - Community discussions, real-world experiences
-- `mcp__exa__web_search_exa` (filtered to x.com/twitter.com) - Latest trends, announcements, developer discussions
-- `mcp__exa__web_search_exa` (filtered to youtube.com) - Tutorials, conference talks, demos
-- `WebSearch` with site-specific queries (e.g., `site:reddit.com`, `site:x.com`, `site:youtube.com`)
+```bash
+# Reddit discussions
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query] site:reddit.com" --results 10
 
-**All Mode:** Use all tools in parallel (including Social/Community sources)
+# Twitter/X discussions
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query] site:x.com OR site:twitter.com" --results 10
+
+# YouTube tutorials
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query] site:youtube.com" --results 10
+```
+
+**GitHub Mode:**
+```bash
+# Search repositories
+python3 super-dev-plugin/scripts/github/github_search_repos.py --query "[query]" --sort stars --per-page 10
+
+# Get file contents
+python3 super-dev-plugin/scripts/github/github_file_contents.py --owner "[owner]" --repo "[repo]" --path "[path]"
+```
+
+**All Mode:** Execute scripts for all modes in parallel
 
 ### Step 4: Execute Parallel Searches
 - Run selected tools concurrently
@@ -146,16 +186,43 @@ Every search must:
 - [ ] Filter results below confidence threshold
 - [ ] Include timestamp for all results
 
-## Alternative: Exa Search via Script
+## HTTP Connector Scripts Reference
 
-For batch searches or when token efficiency is critical, use the wrapper scripts:
+**MANDATORY:** Always use these scripts for online searches instead of direct MCP tool calls.
 
-```bash
-# Web search
-python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query]" --results 10
+### Available Scripts
 
-# Code context
-python3 super-dev-plugin/scripts/exa/exa_code.py --query "[code query]" --tokens 5000
+| Category | Script | Purpose |
+|----------|--------|---------|
+| **Exa** | `exa/exa_search.py` | Web search |
+| **Exa** | `exa/exa_code.py` | Code context search |
+| **DeepWiki** | `deepwiki/deepwiki_structure.py` | Get repo docs structure |
+| **DeepWiki** | `deepwiki/deepwiki_contents.py` | Get repo docs contents |
+| **DeepWiki** | `deepwiki/deepwiki_ask.py` | Ask questions about a repo |
+| **Context7** | `context7/context7_resolve.py` | Resolve library ID |
+| **Context7** | `context7/context7_docs.py` | Get library documentation |
+| **GitHub** | `github/github_search_code.py` | Search code across repos |
+| **GitHub** | `github/github_search_repos.py` | Search repositories |
+| **GitHub** | `github/github_file_contents.py` | Get file/directory contents |
+
+### Script Location
+
+All scripts are in: `super-dev-plugin/scripts/`
+
+### Output Format
+
+All scripts return consistent JSON:
+```json
+{
+  "success": true,
+  "data": { ... },
+  "metadata": {
+    "tool": "tool_name",
+    "server": "server_name",
+    "url": "https://...",
+    "timestamp": "2025-11-28T03:30:00+00:00"
+  }
+}
 ```
 
-See `research-agent.md` for full documentation on script usage.
+See `research-agent.md` and `super-dev-plugin/scripts/README.md` for full documentation.

@@ -259,15 +259,17 @@ Every research report must:
 - [ ] Provide actionable recommendations
 - [ ] Note any conflicting information
 
-## Exa Search via Script (Recommended)
+## HTTP Connector Scripts (MANDATORY)
 
-For Exa searches, execute the wrapper scripts via Bash instead of direct MCP tool calls.
-This follows the "Code Execution with MCP" pattern for better token efficiency.
+**CRITICAL RULE:** Always use HTTP Connector Scripts (via Bash) for ALL online searches instead of direct MCP tool calls. This ensures token efficiency and consistent output formatting.
 
-**No separate configuration needed** - scripts automatically read Exa MCP config from Claude Code settings.
+**No separate configuration needed** - scripts automatically read MCP config from Claude Code settings.
 
-### Web Search
+---
 
+### Exa Scripts
+
+#### Web Search
 ```bash
 python3 super-dev-plugin/scripts/exa/exa_search.py --query "[search query]" --type auto --results 10
 ```
@@ -278,8 +280,7 @@ python3 super-dev-plugin/scripts/exa/exa_search.py --query "[search query]" --ty
 - `--results, -r`: Number of results (default: 8)
 - `--context-chars, -c`: Max context characters (default: 10000)
 
-### Code Context
-
+#### Code Context
 ```bash
 python3 super-dev-plugin/scripts/exa/exa_code.py --query "[code query]" --tokens 5000
 ```
@@ -288,37 +289,131 @@ python3 super-dev-plugin/scripts/exa/exa_code.py --query "[code query]" --tokens
 - `--query, -q`: Code-related search query (required)
 - `--tokens, -t`: Number of tokens (default: 5000, range: 1000-50000)
 
-### How It Works
+---
+
+### DeepWiki Scripts
+
+#### Get Repo Documentation Structure
+```bash
+python3 super-dev-plugin/scripts/deepwiki/deepwiki_structure.py --repo "owner/repo"
+```
+
+**Parameters:**
+- `--repo, -r`: GitHub repository in "owner/repo" format (required)
+
+#### Get Repo Documentation Contents
+```bash
+python3 super-dev-plugin/scripts/deepwiki/deepwiki_contents.py --repo "owner/repo"
+```
+
+**Parameters:**
+- `--repo, -r`: GitHub repository in "owner/repo" format (required)
+
+#### Ask Questions About a Repo
+```bash
+python3 super-dev-plugin/scripts/deepwiki/deepwiki_ask.py --repo "owner/repo" --question "How does X work?"
+```
+
+**Parameters:**
+- `--repo, -r`: GitHub repository in "owner/repo" format (required)
+- `--question, -q`: Question to ask about the repository (required)
+
+---
+
+### Context7 Scripts
+
+#### Resolve Library ID
+```bash
+python3 super-dev-plugin/scripts/context7/context7_resolve.py --library "library-name"
+```
+
+**Parameters:**
+- `--library, -l`: Library name to search for (required)
+
+#### Get Library Documentation
+```bash
+python3 super-dev-plugin/scripts/context7/context7_docs.py --library-id "/org/project" --mode code --topic "routing"
+```
+
+**Parameters:**
+- `--library-id, -l`: Context7-compatible library ID (required, format: /org/project)
+- `--mode, -m`: `code` (API/examples) or `info` (conceptual guides) (default: code)
+- `--topic, -t`: Topic to focus on (optional)
+- `--page, -p`: Page number for pagination (default: 1)
+
+---
+
+### GitHub Scripts
+
+#### Search Code
+```bash
+python3 super-dev-plugin/scripts/github/github_search_code.py --query "HttpConnector language:python" --per-page 10
+```
+
+**Parameters:**
+- `--query, -q`: Search query using GitHub search syntax (required)
+- `--sort, -s`: Sort field (default: indexed)
+- `--order, -o`: Sort order: `asc` or `desc`
+- `--per-page`: Results per page (default: 10, max: 100)
+- `--page`: Page number (default: 1)
+
+#### Search Repositories
+```bash
+python3 super-dev-plugin/scripts/github/github_search_repos.py --query "topic:mcp stars:>100" --sort stars
+```
+
+**Parameters:**
+- `--query, -q`: Search query using GitHub search syntax (required)
+- `--sort, -s`: Sort by: `stars`, `forks`, `help-wanted-issues`, `updated`
+- `--order, -o`: Sort order: `asc` or `desc`
+- `--per-page`: Results per page (default: 10, max: 100)
+- `--page`: Page number (default: 1)
+
+#### Get File Contents
+```bash
+python3 super-dev-plugin/scripts/github/github_file_contents.py --owner "owner" --repo "repo" --path "src/"
+```
+
+**Parameters:**
+- `--owner, -o`: Repository owner (required)
+- `--repo, -r`: Repository name (required)
+- `--path, -p`: Path to file or directory (default: /)
+- `--ref`: Git ref (branch, tag, or commit SHA)
+
+---
+
+### How Scripts Work
 
 1. Scripts read MCP config from Claude Code settings:
    - `~/.claude.json`
    - `~/.claude/settings.json`
    - `.claude/settings.local.json` (project)
 
-2. Connect to Exa MCP server using `mcp-use` client (auto-installed if missing)
+2. Connect to HTTP MCP server using `mcp-use` HttpConnector (auto-installed if missing)
 
-3. Call the Exa tools and return JSON results
+3. Call the MCP tools and return JSON results
 
 ### Output Format
 
-Both scripts return JSON:
+All scripts return consistent JSON:
 ```json
 {
   "success": true,
-  "query": "search query",
-  "results": [...],
+  "data": { ... },
   "metadata": {
-    "tool": "web_search_exa",
-    "timestamp": "2025-11-27T10:00:00Z"
+    "tool": "tool_name",
+    "server": "server_name",
+    "url": "https://...",
+    "timestamp": "2025-11-28T03:30:00+00:00"
   }
 }
 ```
 
-### When to Use Scripts vs Direct MCP Calls
+### Scripts vs Direct MCP Calls
 
-| Use Scripts | Use Direct MCP Calls |
-|-------------|---------------------|
-| Multiple searches in batch | Single quick search |
-| Processing/filtering needed | Simple result display |
-| Token efficiency critical | Interactive exploration |
-| Caching results | Real-time queries |
+| Always Use Scripts | Exception (Direct MCP OK) |
+|-------------------|---------------------------|
+| Research/search tasks | None - always use scripts |
+| Batch operations | |
+| Agent subprocesses | |
+| Token efficiency needed | |
