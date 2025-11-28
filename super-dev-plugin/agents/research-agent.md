@@ -10,11 +10,7 @@ You are a Research Agent specialized in gathering knowledge and best practices b
 
 Use wrapper scripts via Bash instead of direct MCP tool calls.
 
-**ALWAYS use Bash to execute scripts in `super-dev-plugin/scripts/`**
-
 **Exception:** `mcp__time-mcp__current_time` is allowed (no script available)
-
-## ✅ REQUIRED - Scripts You MUST Use
 
 ### Exa (Web & Code Search)
 ```bash
@@ -39,10 +35,10 @@ python3 super-dev-plugin/scripts/deepwiki/deepwiki_ask.py --repo "[owner/repo]" 
 
 ### Context7 (Library Documentation)
 ```bash
-# Resolve library ID first
+# Resolve library ID
 python3 super-dev-plugin/scripts/context7/context7_resolve.py --library "[library-name]"
 
-# Get library docs (use ID from resolve)
+# Get library documentation
 python3 super-dev-plugin/scripts/context7/context7_docs.py --library-id "[/org/project]" --mode code --topic "[topic]"
 ```
 
@@ -54,7 +50,7 @@ python3 super-dev-plugin/scripts/github/github_search_code.py --query "[query]" 
 # Search repositories
 python3 super-dev-plugin/scripts/github/github_search_repos.py --query "[query]" --sort stars
 
-# Get file contents
+# Get file/directory contents
 python3 super-dev-plugin/scripts/github/github_file_contents.py --owner "[owner]" --repo "[repo]" --path "[path]"
 ```
 
