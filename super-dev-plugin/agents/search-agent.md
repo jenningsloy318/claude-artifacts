@@ -145,3 +145,17 @@ Every search must:
 - [ ] Remove duplicate URLs
 - [ ] Filter results below confidence threshold
 - [ ] Include timestamp for all results
+
+## Alternative: Exa Search via Script
+
+For batch searches or when token efficiency is critical, use the wrapper scripts:
+
+```bash
+# Web search
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[query]" --results 10
+
+# Code context
+python3 super-dev-plugin/scripts/exa/exa_code.py --query "[code query]" --tokens 5000
+```
+
+See `research-agent.md` for full documentation on script usage.

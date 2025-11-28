@@ -258,3 +258,66 @@ Every research report must:
 - [ ] Include provenance for audit
 - [ ] Provide actionable recommendations
 - [ ] Note any conflicting information
+
+## Exa Search via Script (Recommended)
+
+For Exa searches, execute the wrapper scripts via Bash instead of direct MCP tool calls.
+This follows the "Code Execution with MCP" pattern for better token efficiency.
+
+### Web Search
+
+```bash
+python3 super-dev-plugin/scripts/exa/exa_search.py --query "[search query]" --type auto --results 10
+```
+
+**Parameters:**
+- `--query, -q`: Search query string (required)
+- `--type, -t`: `auto` (balanced), `fast` (quick), `deep` (comprehensive)
+- `--results, -r`: Number of results (default: 8)
+- `--context-chars, -c`: Max context characters (default: 10000)
+
+### Code Context
+
+```bash
+python3 super-dev-plugin/scripts/exa/exa_code.py --query "[code query]" --tokens 5000
+```
+
+**Parameters:**
+- `--query, -q`: Code-related search query (required)
+- `--tokens, -t`: Number of tokens (default: 5000, range: 1000-50000)
+
+### Prerequisites
+
+1. Install dependencies:
+   ```bash
+   pip install mcp-use
+   ```
+
+2. Set environment variable:
+   ```bash
+   export EXA_API_KEY="your-api-key"
+   ```
+
+### Output Format
+
+Both scripts return JSON:
+```json
+{
+  "success": true,
+  "query": "search query",
+  "results": [...],
+  "metadata": {
+    "tool": "web_search_exa",
+    "timestamp": "2025-11-27T10:00:00Z"
+  }
+}
+```
+
+### When to Use Scripts vs Direct MCP Calls
+
+| Use Scripts | Use Direct MCP Calls |
+|-------------|---------------------|
+| Multiple searches in batch | Single quick search |
+| Processing/filtering needed | Simple result display |
+| Token efficiency critical | Interactive exploration |
+| Caching results | Real-time queries |
