@@ -1,6 +1,8 @@
 # MCP HTTP Connector Pattern Specification
 
 **Created:** 2025-11-28
+**Updated:** 2025-11-28
+**Version:** 1.1.0
 **Status:** Reference Specification
 **Purpose:** Define reusable pattern for creating scripts that connect to HTTP-based MCP servers
 
@@ -8,19 +10,18 @@
 
 This specification defines a standardized pattern for creating Python scripts that connect to **HTTP-based MCP servers** configured in Claude Code. These scripts enable agents to execute MCP tool calls via Bash, providing token efficiency, batch operations, and consistent output formatting.
 
-## Problem Statement
+**Note:** The `HttpConnector` from `mcp-use` uses **Server-Sent Events (SSE)** internally for streaming responses. SSE is NOT a separate connector type - it's the transport mechanism within HTTP connections.
 
-Claude Code's MCP servers can be configured in two ways:
+## MCP Server Types Comparison
 
-| Type | Transport | Can Connect Externally? |
-|------|-----------|------------------------|
-| `http` | HTTP/HTTPS endpoint | **Yes** - Server is already running |
-| `stdio` | Subprocess stdin/stdout | **No** - Owned by Claude Code process |
+| Type | Transport | Connector | Can Connect Externally? |
+|------|-----------|-----------|------------------------|
+| `http` | HTTP + SSE streaming | `HttpConnector` | **Yes** - Server is already running |
+| `streamableHttp` | HTTP + SSE streaming | `HttpConnector` | **Yes** - Same as http |
+| `stdio` | Subprocess stdin/stdout | `StdioConnector` | **Yes** - Spawns subprocess |
+| `websocket` | WebSocket bidirectional | `WebSocketConnector` | **Yes** - Persistent connection |
 
-Scripts can only connect to **HTTP-based** servers because:
-- HTTP servers are independent services accessible via URL
-- Stdio servers are subprocesses whose I/O is owned by Claude Code
-- External processes cannot share stdio streams with Claude Code
+**SSE Clarification:** Server-Sent Events is a unidirectional streaming protocol (server → client) built on HTTP. The `HttpConnector` handles SSE automatically for streaming responses. Use `WebSocketConnector` when full bidirectional communication is needed.
 
 ## Architecture
 
@@ -65,11 +66,13 @@ Scripts auto-discover MCP config from Claude Code settings in priority order:
 ```
 
 **Required Fields:**
-- `type`: Must be `"http"` for external connection
+- `type`: Must be `"http"` or `"streamableHttp"` for HTTP connection
 - `url`: Full URL of the MCP HTTP endpoint
 
 **Optional Fields:**
 - `headers`: Key-value pairs for authentication/authorization
+
+**Note:** Both `type: "http"` and `type: "streamableHttp"` use the same `HttpConnector`. The latter explicitly indicates SSE streaming support.
 
 ## Script Template Structure
 
@@ -158,7 +161,8 @@ def find_mcp_config(server_pattern: str) -> dict | None:
 
                 for name, server_config in mcp_servers.items():
                     if server_pattern in name.lower():
-                        if server_config.get("type") == "http":
+                        # Support both http and streamableHttp types
+                        if server_config.get("type") in ("http", "streamableHttp"):
                             return {
                                 "name": name,
                                 "url": server_config.get("url"),
@@ -362,6 +366,8 @@ super-dev-plugin/
 
 ## Related Specifications
 
+- [12-mcp-stdio-connector](../12-mcp-stdio-connector/01-specification.md) - Stdio connector pattern (spawns subprocess)
+- [13-mcp-websocket-connector](../13-mcp-websocket-connector/01-specification.md) - WebSocket connector pattern (bidirectional)
 - [exa-search-script](../exa-search-script/01-specification.md) - Exa implementation
 
 ## Version History
@@ -369,3 +375,4 @@ super-dev-plugin/
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0.0 | 2025-11-28 | Initial specification |
+| 1.1.0 | 2025-11-28 | Clarified SSE usage, added streamableHttp support, linked to other connector specs |
