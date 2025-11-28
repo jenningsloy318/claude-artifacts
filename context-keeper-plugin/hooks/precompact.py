@@ -12,8 +12,7 @@ Exit codes:
   1 - Non-blocking error (logged but doesn't block compaction)
 
 Environment variables:
-  CLAUDE_SUMMARY_API_KEY - API key for Claude summarization (preferred)
-  ANTHROPIC_API_KEY - Fallback API key
+  CLAUDE_SUMMARY_API_KEY - Dedicated API key for Claude summarization (required for LLM summary)
   CLAUDE_SUMMARY_API_URL - Custom API base URL (optional, e.g., for proxy or region)
 """
 
@@ -255,46 +254,34 @@ def get_settings_env() -> dict:
 
 
 def get_api_key() -> Optional[str]:
-    """Get API key from environment with fallback to settings.json."""
+    """Get CLAUDE_SUMMARY_API_KEY from environment with fallback to settings.json."""
     log_debug("=== get_api_key() START ===")
 
     # First try shell environment
-    log_debug("Checking shell environment for API key...")
+    log_debug("Checking shell environment for CLAUDE_SUMMARY_API_KEY...")
     env_key = os.environ.get("CLAUDE_SUMMARY_API_KEY")
-    env_key_anthropic = os.environ.get("ANTHROPIC_API_KEY")
 
     if env_key:
         masked = env_key[:4] + "..." + env_key[-4:] if len(env_key) > 10 else "***"
         log_debug(f"Found CLAUDE_SUMMARY_API_KEY in shell env: {masked}")
         log_debug("=== get_api_key() END (from shell env) ===")
         return env_key
-    elif env_key_anthropic:
-        masked = env_key_anthropic[:4] + "..." + env_key_anthropic[-4:] if len(env_key_anthropic) > 10 else "***"
-        log_debug(f"Found ANTHROPIC_API_KEY in shell env: {masked}")
-        log_debug("=== get_api_key() END (from shell env) ===")
-        return env_key_anthropic
-    else:
-        log_debug("NO API key found in shell environment")
+
+    log_debug("CLAUDE_SUMMARY_API_KEY not found in shell environment")
 
     # Fallback to settings.json env section
     log_debug("Falling back to settings.json...")
     settings_env = get_settings_env()
 
     settings_key = settings_env.get("CLAUDE_SUMMARY_API_KEY")
-    settings_key_anthropic = settings_env.get("ANTHROPIC_API_KEY")
 
     if settings_key:
         masked = settings_key[:4] + "..." + settings_key[-4:] if len(settings_key) > 10 else "***"
         log_debug(f"Found CLAUDE_SUMMARY_API_KEY in settings.json: {masked}")
         log_debug("=== get_api_key() END (from settings.json) ===")
         return settings_key
-    elif settings_key_anthropic:
-        masked = settings_key_anthropic[:4] + "..." + settings_key_anthropic[-4:] if len(settings_key_anthropic) > 10 else "***"
-        log_debug(f"Found ANTHROPIC_API_KEY in settings.json: {masked}")
-        log_debug("=== get_api_key() END (from settings.json) ===")
-        return settings_key_anthropic
 
-    log_debug("NO API key found in settings.json either")
+    log_debug("CLAUDE_SUMMARY_API_KEY not found in settings.json either")
     log_debug("=== get_api_key() END (NO KEY FOUND) ===")
     return None
 
@@ -335,7 +322,7 @@ def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str
 
     api_key = get_api_key()
     if not api_key:
-        log_info("No API key found (CLAUDE_SUMMARY_API_KEY or ANTHROPIC_API_KEY)")
+        log_info("No API key found (set CLAUDE_SUMMARY_API_KEY)")
         log_debug("=== generate_summary_with_llm() END (no API key) ===")
         return None
 
