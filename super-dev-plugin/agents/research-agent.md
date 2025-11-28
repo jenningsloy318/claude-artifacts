@@ -264,6 +264,8 @@ Every research report must:
 For Exa searches, execute the wrapper scripts via Bash instead of direct MCP tool calls.
 This follows the "Code Execution with MCP" pattern for better token efficiency.
 
+**No separate configuration needed** - scripts automatically read Exa MCP config from Claude Code settings.
+
 ### Web Search
 
 ```bash
@@ -286,17 +288,16 @@ python3 super-dev-plugin/scripts/exa/exa_code.py --query "[code query]" --tokens
 - `--query, -q`: Code-related search query (required)
 - `--tokens, -t`: Number of tokens (default: 5000, range: 1000-50000)
 
-### Prerequisites
+### How It Works
 
-1. Install dependencies:
-   ```bash
-   pip install mcp-use
-   ```
+1. Scripts read MCP config from Claude Code settings:
+   - `~/.claude.json`
+   - `~/.claude/settings.json`
+   - `.claude/settings.local.json` (project)
 
-2. Set environment variable:
-   ```bash
-   export EXA_API_KEY="your-api-key"
-   ```
+2. Connect to Exa MCP server using `mcp-use` client (auto-installed if missing)
+
+3. Call the Exa tools and return JSON results
 
 ### Output Format
 
