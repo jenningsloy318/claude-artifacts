@@ -85,28 +85,35 @@ experimental: {
 - `[locale]/` - i18n locale routing
 - `api/auth/[...nextauth]/route.ts` - NextAuth.js handler
 
-## NextAuth.js v5 Rules
+## Authentication Rules (BetterAuth and NextAuth v5)
 
-### Configuration
-- Create `lib/auth.ts` with NextAuth config
-- Export `{ handlers, auth, signIn, signOut }` from NextAuth()
-- Use `PrismaAdapter` from `@auth/prisma-adapter`
-- Configure providers: GitHub, Google, Credentials, etc.
-- Set `session.strategy: 'jwt'` or `'database'`
+### Configuration (NextAuth v5, App Router)
+- Create `lib/auth.ts` with NextAuth configuration; export `{ handlers, auth, signIn, signOut }`
+- Use `PrismaAdapter` from `@auth/prisma-adapter`; ensure models align with NextAuth schema
+- Configure providers (GitHub, Google, Credentials) with least-privilege scopes and explicit redirect URIs
+- Prefer `session.strategy: 'jwt'` for stateless apps; use `'database'` when server-side session invalidation is required
+- Enforce secure cookies, sameSite=strict, and HTTPS-only in production; set CSRF protection where applicable
+
+### Configuration (BetterAuth)
+- Use BetterAuth for simpler auth flows in App Router projects that don’t require complex multi-provider setups
+- Keep auth logic server-first: validate on server, avoid leaking tokens to client components
+- Centralize auth utilities in `lib/auth.ts`; define typed session/user DTOs for strict usage across components
 
 ### API Route
 - Create `app/api/auth/[...nextauth]/route.ts`
 - Export `{ GET, POST }` from handlers
 
-### Server Components
-- Import `auth` from `lib/auth`
-- Call `const session = await auth()` to get session
-- Redirect if no session for protected routes
+### Server Components (Protected Routes)
+- Import `auth` from `lib/auth`; call `const session = await auth()` only in server components and server actions
+- Redirect unauthenticated users using `redirect()`; never gate critical flows purely client-side
+- Use `"use cache: private"` for user-scoped server components to avoid cross-user leakage
+- Tag and revalidate user-specific data on mutations to keep session-bound views consistent
 
-### Client Components
-- Wrap app in `<SessionProvider>` in providers.tsx
-- Use `useSession()` hook for session state
-- Use `signIn()` / `signOut()` for auth actions
+### Client Components (Minimal Auth Usage)
+- Wrap app in `<SessionProvider>` only where client-side session state is required; prefer server-first checks
+- Use `useSession()` for non-critical UI state; never expose raw tokens in client components
+- Use `signIn()` / `signOut()` for auth actions with explicit callback URLs; avoid implicit redirects on sensitive pages
+- Ensure accessibility and security: disable auto-focus traps on auth modals, sanitize inputs, and use typed forms with validation (zod)
 
 ## Prisma 7.0.0 Rules
 
