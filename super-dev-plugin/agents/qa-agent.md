@@ -611,81 +611,32 @@ Run `coderabbit --prompt-only` in background. Pass any errors and issues found t
 
 Enforcement: Use MCP test frameworks for all web and UI testing. Default to Playwright MCP for browser automation, Chrome DevTools MCP for performance/console/network traces, and axe-core for accessibility audits.
 
-### Playwright MCP Tools
+### Playwright MCP Tools (essentials)
+- Navigate: browser_navigate
+- Interact: browser_click, browser_type, browser_fill_form
+- Observe: browser_console_messages, browser_network_requests
+- Capture: browser_snapshot (a11y), browser_take_screenshot
+- Evaluate: browser_evaluate (custom JS/assertions)
 
-| Tool | Purpose |
-|------|---------|
-| `mcp__playwright__browser_navigate` | Navigate to URL |
-| `mcp__playwright__browser_snapshot` | Capture accessibility tree |
-| `mcp__playwright__browser_click` | Click element |
-| `mcp__playwright__browser_type` | Type text |
-| `mcp__playwright__browser_fill_form` | Fill multiple form fields |
-| `mcp__playwright__browser_console_messages` | Get console logs |
-| `mcp__playwright__browser_network_requests` | Get network requests |
-| `mcp__playwright__browser_take_screenshot` | Capture screenshot |
-| `mcp__playwright__browser_evaluate` | Execute JavaScript |
-
-### Chrome DevTools MCP Tools
-
-| Tool | Purpose |
-|------|---------|
-| `mcp__chrome-devtools__take_snapshot` | A11y tree snapshot |
-| `mcp__chrome-devtools__take_screenshot` | Page screenshot |
-| `mcp__chrome-devtools__list_console_messages` | Console messages |
-| `mcp__chrome-devtools__list_network_requests` | Network requests |
-| `mcp__chrome-devtools__performance_start_trace` | Start perf trace |
-| `mcp__chrome-devtools__performance_stop_trace` | Stop perf trace |
-| `mcp__chrome-devtools__navigate_page` | Navigate/reload |
+### Chrome DevTools MCP Tools (essentials)
+- Console/Network: list_console_messages, list_network_requests
+- Performance: performance_start_trace, performance_stop_trace
+- Capture: take_snapshot (a11y), take_screenshot
+- Navigation: navigate_page
 
 ---
 
-## Test Report Structure
+## Test Report Structure (concise)
 
-```markdown
-# QA Test Report
-
-**Application**: [Name]
-**Version**: [Version]
-**Date**: [Timestamp]
-**Environment**: [Dev/Staging/Prod]
-
-## Executive Summary
-
-| Metric | Value |
-|--------|-------|
-| Total Tests | [count] |
-| Passed | [count] ([%]) |
-| Failed | [count] ([%]) |
-| Skipped | [count] ([%]) |
-| Duration | [time] |
-
-## Test Results by Category
-
-### CodeRabbit Static Analysis
-| Severity | Count | Fixed | Deferred |
-|----------|-------|-------|----------|
-| Critical | [n] | [n] | 0 |
-| High | [n] | [n] | [n] |
-| Medium | [n] | [n] | [n] |
-| Low | [n] | [n] | [n] |
-
-### CLI Tests
-| Test | Status | Duration | Notes |
-|------|--------|----------|-------|
-| TC-001 | PASS | 1.2s | |
-| TC-002 | FAIL | 0.8s | Exit code mismatch |
-
-### Desktop UI Tests
-| Test | Status | Duration | Notes |
-|------|--------|----------|-------|
-| TC-101 | PASS | 5.3s | |
-| TC-102 | FAIL | 3.1s | Screenshot diff |
-
-### Web App Tests
-| Test | Status | Duration | Notes |
-|------|--------|----------|-------|
-| TC-201 | PASS | 2.1s | |
-| TC-202 | FAIL | 1.8s | Console error |
+- Header: Application, Version, Date, Environment
+- Executive Summary:
+  - Totals: tests, pass/fail/skip counts, duration
+  - Coverage: overall and new/changed code
+  - Key defects: count and severities
+- Results by Category:
+  - Static analysis (summary by severity)
+  - CLI / Desktop / Web tests: pass/fail counts and notable failures
+- Artifacts: traces, screenshots, network logs, JUnit XML paths
 
 ## Defects Found
 
