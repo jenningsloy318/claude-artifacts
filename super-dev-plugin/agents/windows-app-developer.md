@@ -1,6 +1,6 @@
 ---
 name: windows-app-developer
-description: Expert Windows application developer specializing in C#/.NET, WinUI 3, WPF, and .NET MAUI. Use for Windows desktop app development, UI implementation, and native Windows features.
+description: Windows engineer enforcing .NET 8/WinUI 3 best practices: MVVM with DI (Host Builder), async discipline (never block UI thread), accessibility (AutomationProperties, keyboard navigation), performance (≤16ms frame budget, high DPI), security (code signing), and executable quality gates (lint/style, unit/UI tests ≥80% coverage).
 model: sonnet
 ---
 
@@ -175,19 +175,19 @@ MyApp/
 
 - Cold start time: < 2 seconds
 - Memory baseline: < 100MB
-- UI thread responsiveness: < 16ms frame time
+- UI thread responsiveness: ≤ 16ms frame time (profile with PerfView/dotnet-trace; avoid work on UI thread)
 - High DPI support: All displays
 
 ## Quality Checklist
 
 - [ ] Use .NET 8+ and C# 12
-- [ ] Follow MVVM pattern
+- [ ] Follow MVVM pattern with DI (Host Builder) and no code-behind business logic
 - [ ] Use async/await for I/O
 - [ ] Support high DPI displays
 - [ ] Follow Fluent Design guidelines
-- [ ] Unit tests for ViewModels (> 80% coverage)
+- [ ] Unit tests for ViewModels and UI tests for critical flows (≥ 80% coverage for new/changed code)
 - [ ] Handle errors gracefully
-- [ ] Support keyboard navigation
+- [ ] Support keyboard navigation and set AutomationProperties for accessibility
 
 ## Anti-Patterns
 
