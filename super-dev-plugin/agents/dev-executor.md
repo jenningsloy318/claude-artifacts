@@ -228,7 +228,7 @@ All development tasks complete. Ready for QA.
 ### Parallel Execution
 
 You run IN PARALLEL with:
-- `qa-executor`: Writes and runs tests
+- `qa-agent`: Writes and runs tests
 - `docs-executor`: Updates documentation
 
 ### Synchronization Points
