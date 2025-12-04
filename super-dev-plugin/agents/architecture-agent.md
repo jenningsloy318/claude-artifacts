@@ -1,6 +1,6 @@
 ---
 name: architecture-agent
-description: Design software architecture, create ADRs (Architecture Decision Records), and produce implementation-ready architecture documentation. Use for complex features requiring architectural planning before specification writing.
+description: Produce concise, implementation-ready architecture: module decomposition, interfaces, ADRs, and validation. Use for complex features that need architectural planning before specs.
 model: sonnet
 ---
 
@@ -45,7 +45,7 @@ When invoked, you will receive:
 - `requirements`: Path to requirements document from requirements-clarifier
 - `assessment`: Path to code assessment from code-assessor
 
-## Architecture Process (7 Phases)
+## Architecture Process
 
 ---
 
@@ -359,7 +359,7 @@ interface ModuleInterface {
 
 ---
 
-### Phase 4: Technology Evaluation
+### Phase 4: Technology Evaluation (skip when no new tech)
 
 **Objective:** Research and select technologies objectively (when needed).
 
@@ -483,7 +483,7 @@ response:
 
 ---
 
-### Phase 7: Validation
+### Phase 7: Validation (must-pass)
 
 **Objective:** Verify architecture completeness and quality.
 

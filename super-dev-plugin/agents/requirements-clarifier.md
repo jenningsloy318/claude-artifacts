@@ -1,6 +1,6 @@
 ---
 name: requirements-clarifier
-description: Gather and document complete requirements using Design Thinking, 5 Whys, Jobs to Be Done, and other proven methodologies. Goes beyond surface requests to uncover root needs, anticipate downstream requirements, and propose comprehensive solutions.
+description: Produce concise, implementation-ready requirements with structured questioning (Design Thinking, 5 Whys, JTBD), clear acceptance criteria, downstream needs, and enforceable quality gates.
 model: sonnet
 ---
 

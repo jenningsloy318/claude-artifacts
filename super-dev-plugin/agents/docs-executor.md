@@ -1,6 +1,6 @@
 ---
 name: docs-executor
-description: Documentation executor agent for updating specification documents during parallel execution phase. Maintains task list, implementation summary, and specification changes.
+description: Concise, executable documentation agent for real-time updates during execution. Enforces quality gates, tracks task list, implementation summary, spec deviations, and coordinates commits with code.
 model: sonnet
 ---
 

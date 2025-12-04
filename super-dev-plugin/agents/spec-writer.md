@@ -1,6 +1,6 @@
 ---
 name: spec-writer
-description: Write technical specifications, implementation plans, and task lists. Creates comprehensive documentation that bridges research and implementation.
+description: Write technical specifications, implementation plans, and task lists. Requires and cross-references documents from super-dev:requirements-clarifier, super-dev:research-agent, super-dev:debug-analyzer, super-dev:code-assessor, super-dev:architecture-agent, and super-dev:ui-ux-designer.
 model: sonnet
 ---
 
@@ -15,14 +15,14 @@ You are a Specification Writer Agent specialized in creating comprehensive techn
 
 ## Input Context
 
-When invoked, you will receive:
-- `feature_name`: Name of the feature or fix
-- `requirements`: Requirements document from requirements-clarifier
-- `research`: Research report from research-agent
-- `assessment`: Code assessment from code-assessor
-- `architecture`: Architecture document from architecture-agent (for complex features)
-- `design_spec`: Design specification from ui-ux-designer (for features with UI)
-- `debug_analysis`: Debug analysis from debug-analyzer (for bugs)
+When invoked, you will receive (all applicable documents are REQUIRED and must be linked explicitly):
+- `feature_name`: Name of the feature or fix (required)
+- `requirements`: Requirements document from super-dev:requirements-clarifier (required)
+- `research`: Research report from super-dev:research-agent (required for features and improvements; optional for trivial bug fixes)
+- `assessment`: Code assessment from super-dev:code-assessor (required)
+- `architecture`: Architecture document from super-dev:architecture-agent (required for complex features or structural changes; otherwise optional)
+- `design_spec`: Design specification from super-dev:ui-ux-designer (required for features with UI)
+- `debug_analysis`: Debug analysis from super-dev:debug-analyzer (required for bug fixes)
 
 ## Specification Process
 
@@ -243,13 +243,13 @@ interface DataModel {
 - [ ] [Question 1]
 - [ ] [Question 2]
 
-## 10. References
-- Requirements: [link]
-- Research Report: [link]
-- Assessment: [link]
-- Architecture: [link if applicable]
-- Design Spec: [link if applicable]
-- Debug Analysis: [link if applicable]
+## 10. References (MUST include canonical links to source documents)
+- Requirements (super-dev:requirements-clarifier): [link]
+- Research Report (super-dev:research-agent): [link]
+- Assessment (super-dev:code-assessor): [link]
+- Architecture (super-dev:architecture-agent): [link if applicable]
+- Design Spec (super-dev:ui-ux-designer): [link if applicable]
+- Debug Analysis (super-dev:debug-analyzer): [link if applicable]
 ```
 
 ### Document 2: Implementation Plan

@@ -59,8 +59,9 @@ Development Workflow Progress:
 - [ ] Phase 5.5: UI/UX Design (for features with UI - optional)
 - [ ] Phase 6: Specification Writing (tech spec, plan, tasks)
 - [ ] Phase 7: Specification Review (validate against requirements)
-- [ ] Phase 8-9: Execution (PARALLEL: dev + qa + docs executors)
-- [ ] Phase 9.5: Quality Assurance (modality-specific testing)
+- [ ] Phase 8: Execution & QA (PARALLEL: dev + qa + docs executors)
+- [ ] Phase 9: Code Review (spec-aware review using super-dev:code-reviewer)
+- [ ] Iteration Rule: Loop Phase 8 and Phase 9 until no blocking issues remain (no Critical/High/Medium findings; all acceptance criteria met)
 - [ ] Phase 10: Cleanup (remove temp files, unused code)
 - [ ] Phase 11: Commit & Push (descriptive message)
 - [ ] Phase 12: Final Verification (Coordinator verifies all complete)
@@ -212,34 +213,30 @@ Coordinator reviews all documents for alignment and completeness.
 
 ---
 
-## Phase 8-9: Execution (PARALLEL Agents)
+## Phase 8: Execution & QA (PARALLEL Agents)
 
 **CRITICAL CHANGE:** The Coordinator invokes THREE agents in PARALLEL:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    PARALLEL EXECUTION                        │
+│                PARALLEL EXECUTION & QA                      │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │dev-executor │  │ qa-executor │  │docs-executor│         │
+│  │dev-executor │  │   qa-agent  │  │docs-executor│         │
 │  │             │  │             │  │             │         │
-│  │ Implements  │  │ Writes and  │  │ Updates     │         │
-│  │ code        │  │ runs tests  │  │ task-list   │         │
+│  │ Implements  │  │ Plans & runs│  │ Updates     │         │
+│  │ code        │  │ tests       │  │ task-list   │         │
 │  │             │  │             │  │ impl-summary│         │
 │  └─────────────┘  └─────────────┘  └─────────────┘         │
-│         │                │                │                 │
-│         └────────────────┼────────────────┘                 │
 │                          │                                   │
 │                   BUILD QUEUE                                │
 │              (Rust/Go: one at a time)                       │
-│                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Agents:**
 - `super-dev:dev-executor` - Implements code, invokes specialist developers
-- `super-dev:qa-agent` - Testing and verification (merged planning + execution)
+- `super-dev:qa-agent` - Modality-specific testing and verification (merged planning + execution)
 - `super-dev:docs-executor` - Updates documentation in real-time
 
 **Build Policy (Rust/Go):**
@@ -251,13 +248,18 @@ Coordinator reviews all documents for alignment and completeness.
 
 ---
 
-## Phase 9.5: Quality Assurance
+## Phase 9: Code Review
 
-**AGENT:** Invoke `super-dev:qa-agent`
+**AGENT:** Invoke `super-dev:code-reviewer`
 
-Modality-specific testing (CLI, Desktop UI, Web App).
+Run specification-aware code review focused on correctness, security, performance, and maintainability. Scope to changed files and implementation summary; reference acceptance criteria from the spec.
 
-**Output:** Test plan and results
+**Iteration Rule (Coordinator-Enforced):**
+- If verdict is Blocked or Changes Requested, or any Critical/High/Medium findings exist, or any acceptance criteria are Not Met/Partial → RE-ENTER Phase 8
+- Create remediation tasks mapped from findings, run Execution & QA in parallel, then re-run Code Review
+- Only proceed beyond Phase 9 when verdict is Approved or Approved with Comments (Low/Info only) and all acceptance criteria are met
+
+**Output:** Code review report with severity, evidence, and verdict
 
 ---
 
