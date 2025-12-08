@@ -357,6 +357,25 @@ The user provided these specific instructions for this compaction:
 
     prompt = f"""Analyze this Claude Code session and create a comprehensive summary for future context restoration.
 
+## What MUST be preserved:
+- Key architecture changes (system design, structural modifications, refactoring decisions)
+- Key UI/UX changes (component updates, interface modifications, user experience improvements)
+- Key specification changes (requirements changes, business rules, validation logic updates)
+- Multiple rounds of conversation that clarify issues and requirements
+- Indirect or direct logs that show errors (error messages, stack traces, failure information)
+
+## What should be refined/summarized:
+- Repetitive conversations that converge on a solution
+- Long error traces refined to show only key error indicators
+- Multiple similar questions condensed into single entries
+
+## What should be avoided:
+- Plenty of unrelated logs posted by user (random logs, test outputs)
+- LLM thinking process and internal reasoning
+- Meaningless acknowledgments ("I understand", "Got it", "Thanks", etc.)
+- Raw tool outputs without meaningful context
+- Duplicate or very similar messages
+
 ## Session Information
 - Session ID: {session_info.get('session_id', 'unknown')}
 - Project: {session_info.get('cwd', 'unknown')}
@@ -367,17 +386,22 @@ The user provided these specific instructions for this compaction:
 - Total Messages: {content.get('message_count', 0)}
 {custom_section}
 
-## User Messages (sample)
-{json.dumps(user_msgs[:10], indent=2, ensure_ascii=False)[:3000]}
+## Filtered Content
+This session has been filtered to preserve only essential content as specified above. The following were excluded:
+- Unrelated logs and system outputs
+- LLM internal thinking processes
+- Filler acknowledgments and pleasantries
+- Repetitive minor interactions
+- Raw tool outputs without context
 
-## Assistant Responses (sample)
-{json.dumps(assistant_msgs[:10], indent=2, ensure_ascii=False)[:3000]}
+## Key Messages Preserved
+{json.dumps([msg for msg in user_messages if len(msg.strip()) and '<system-reminder>' not in msg][:15], indent=2, ensure_ascii=False)[:3000]}
 
-## Tool Calls
-{json.dumps(tool_calls[:30], indent=2, ensure_ascii=False)[:2000]}
+## Key Assistant Responses
+{json.dumps([msg for msg in assistant_messages if len(msg.strip())][:15], indent=2, ensure_ascii=False)[:3000]}
 
-## Files Modified
-{json.dumps(files_modified, indent=2)}
+## Important Tool Operations
+{json.dumps([tc for tc in tool_calls if tc.get('tool') in ['Edit', 'Write', 'Read', 'Bash'] and not any(tc.get('tool') in ['NotebookEdit', 'NotebookEdit'] or tc.get('tool') == 'Read' and not tc.get('input', {}).get('file_path'))][:10], indent=2, ensure_ascii=False)[:2000]}
 
 ---
 
@@ -386,28 +410,44 @@ Create a summary with these sections:
 ## Topics Discussed
 - List main themes and subjects covered
 
-## Code Changes
+## Architecture Changes
 - Files modified with brief descriptions of changes
-- Key code snippets if relevant
+- Key design patterns and decisions
+
+## UI/UX Changes
+- Interface updates and component modifications
+- User flow improvements
+- Design system updates
+
+## Specification Changes
+- Requirements and business rules updates
+- Validation logic changes
+- API contract modifications
+
+## Code Changes
+- Files modified with brief descriptions
+- Key snippets or patterns implemented
 
 ## Decisions Made
 - Important decisions with rationale
 - Trade-offs considered
+- Architecture choices
 
 ## Key Outcomes
 - What was accomplished
 - Problems solved
+- Features implemented
 
 ## Context for Continuation
 - Important context needed to continue this work
 - Current state of implementation
 - Next steps if mentioned
+- File changes that were made
 
 ## Tags
-- Relevant hashtags for categorization (e.g., #authentication #api #bugfix)
+- Relevant hashtags for categorization (e.g., #authentication #api #bugfix #refactor)
 
-Be comprehensive but concise. Focus on information that would help resume this work later."""
-
+Be comprehensive but concise. Focus on the essential context that would help resume this work later."""
     try:
         # Build client with optional custom base URL
         api_url = get_api_url()
