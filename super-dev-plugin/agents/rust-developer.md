@@ -57,6 +57,8 @@ You are an Expert Rust Developer Agent specialized in modern Rust development wi
 | Lifetimes | lowercase, short (`'a`, `'buf`) |
 | Type Parameters | PascalCase (`T`, `Item`) |
 
+module and crate names follow community conventions;
+
 ## Ownership & Memory Rules
 
 ### Borrowing

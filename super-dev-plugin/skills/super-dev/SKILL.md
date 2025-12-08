@@ -97,6 +97,29 @@ Task(
 
 ---
 
+## Individual Phase Commands
+
+For granular control, you can invoke individual phases using slash commands:
+
+| Phase | Command | Purpose |
+|-------|---------|---------|
+| 3 | `/super-dev:research [topic]` | Research - find best practices with Time MCP |
+| 4 | `/super-dev:debug-analysis [bug details]` | Debug Analysis - root cause analysis (bugs only) |
+| 5 | `/super-dev:code-assessment [feature]` | Code Assessment - evaluate existing codebase |
+| 5.3 | `/super-dev:architecture-design [requirements]` | Architecture Design - create ADRs (complex features) |
+| 5.5 | `/super-dev:ui-ux-design [UI requirements]` | UI/UX Design - design specifications (UI features) |
+| 8 | `/super-dev:execute [spec path]` | Execution & QA - implement code with parallel testing |
+| 9 | `/super-dev:code-review [changes]` | Code Review - spec-aware review using super-dev:code-reviewer |
+| 10 | `/super-dev:update-documentation [spec path]` | Documentation Update - update all documentation |
+
+**When to use individual phases:**
+- When you need granular control over the workflow
+- To re-run a specific phase after making corrections
+- For learning or debugging the development process
+- When working on very small tasks that don't need the full workflow
+
+---
+
 ## Documentation Update Rules (CRITICAL - MANDATORY)
 
 **At every milestone/phase boundary, update these documents:**
