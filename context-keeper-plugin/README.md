@@ -4,12 +4,12 @@ Automatically summarize and persist conversation context before compaction, with
 
 ## Features
 
-- **Automatic Context Summaries**: Generates comprehensive summaries before context compaction (manual `/compact` or automatic)
+- **Automatic Context Memories**: Generates comprehensive memories before context compaction (manual `/compact` or automatic)
 - **Context Restoration**: Automatically reloads context when resuming after compaction
 - **Timestamp-based Versioning**: Multiple compactions create versioned snapshots
-- **Manual Loading**: Load previous contexts via `/load-context` command
+- **Manual Loading**: Load previous memories via `/load-memory` command
 - **Context Management Skill**: Natural language context queries ("list my contexts", "load previous context")
-- **LLM or Structured Extraction**: Uses Claude API for intelligent summaries, with graceful fallback to structured extraction
+- **LLM or Structured Extraction**: Uses Claude API for intelligent memories, with graceful fallback to structured extraction
 
 ## Installation
 
@@ -34,18 +34,18 @@ Restart Claude Code for the plugin to take effect. The hooks are automatically r
 claude plugin marketplace add jenningsloy318/super-skill-claude-artifacts
 claude plugin install context-keeper@super-skill-claude-artifacts
 
-# 2. (Optional) Set API key for LLM-based summaries
+# 2. (Optional) Set API key for LLM-based memories
 export CLAUDE_SUMMARY_API_KEY="your-api-key"
 
 # 3. Restart Claude Code
 
-# 4. Use Claude Code normally - summaries are automatic!
+# 4. Use Claude Code normally - memories are automatic!
 ```
 
 ## Requirements
 
 - Python 3.8+
-- `anthropic` Python package (for LLM-based summaries)
+- `anthropic` Python package (for LLM-based memories)
 
 ```bash
 pip install anthropic
@@ -60,7 +60,7 @@ pip install anthropic
 | `CLAUDE_SUMMARY_API_KEY` | Dedicated API key for Claude LLM summarization | No |
 | `CLAUDE_SUMMARY_API_URL` | Custom API base URL (for proxy or regional endpoints) | No |
 
-**Note**: Without `CLAUDE_SUMMARY_API_KEY`, the plugin will use structured extraction (keyword-based summary) instead of LLM-generated summaries.
+**Note**: Without `CLAUDE_SUMMARY_API_KEY`, the plugin will use structured extraction (keyword-based memory) instead of LLM-generated memories.
 
 ### Setting Environment Variables
 
@@ -79,16 +79,16 @@ export CLAUDE_SUMMARY_API_KEY="your-api-key-here"
 1. Hook receives context metadata via stdin
 2. Reads full transcript from transcript_path
 3. Extracts: user messages, assistant responses, tool calls, files modified
-4. Generates summary (LLM if API key available, structured extraction otherwise)
-5. Saves to `.claude/summaries/{context_id}/{timestamp}/`
+4. Generates memory (LLM if API key available, structured extraction otherwise)
+5. Saves to `.claude/memories/{context_id}/{timestamp}/`
 6. Updates index.json
 7. Creates/updates "latest" symlink
 
 ### On Resume (SessionStart Hook)
 
 1. Hook receives context metadata
-2. Checks for existing summaries in project
-3. Loads most recent summary (within 24 hours)
+2. Checks for existing memories in project
+3. Loads most recent memory (within 24 hours)
 4. Outputs context to stdout (injected into Claude's context)
 
 ## Storage Structure
@@ -96,11 +96,11 @@ export CLAUDE_SUMMARY_API_KEY="your-api-key-here"
 Summaries are stored per-project:
 
 ```
-{PROJECT}/.claude/summaries/
-├── index.json                          # Global index of all summaries
+{PROJECT}/.claude/memories/
+├── index.json                          # Global index of all memories
 └── {context_id}/
     ├── {timestamp}/
-    │   ├── summary.md                  # Human-readable summary
+    │   ├── memory.json                # Memory stored as JSON
     │   └── metadata.json               # Machine-readable metadata
     └── latest -> {timestamp}           # Symlink to most recent
 ```
@@ -110,14 +110,14 @@ Summaries are stored per-project:
 ### Automatic (After Compaction)
 
 Just use Claude Code normally. When compaction occurs:
-1. PreCompact hook automatically saves context summary
+1. PreCompact hook automatically saves context memory
 2. SessionStart hook automatically reloads context
 
 ### Manual Loading
 
 ```
-/load-context              # Load most recent context
-/load-context abc123       # Load specific context by ID
+/load-memory              # Load most recent memory
+/load-memory abc123       # Load specific memory by ID
 ```
 
 ### Context Management
@@ -126,7 +126,7 @@ Ask Claude naturally:
 - "What contexts do I have?"
 - "List my context history"
 - "Load the previous context"
-- "Show summaries for this project"
+- "Show memories for this project"
 
 ## Summary Content
 

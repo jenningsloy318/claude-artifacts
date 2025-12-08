@@ -1,31 +1,31 @@
 ---
 name: context-manager
-description: Manage saved context summaries. Use when user wants to list, load, search, or manage saved context summaries. Triggers on phrases like "list contexts", "show summaries", "load context", "what contexts", "previous work", "context history", "what did we work on".
+description: Manage saved context memories. Use when user wants to list, load, search, or manage saved context memories. Triggers on phrases like "list contexts", "show memories", "load context", "what contexts", "previous work", "context history", "what did we work on".
 ---
 
 # Context Manager Skill
 
-Manage context summaries created by the PreCompact hook.
+Manage context memories created by the PreCompact hook.
 
 ## When to Activate
 
 Use this skill when user:
 - Asks about previous work ("what did we work on?", "show my contexts")
-- Wants to list saved summaries ("list contexts", "context history")
+- Wants to list saved memories ("list contexts", "context history")
 - Needs to load specific context ("load the auth context", "restore previous work")
-- Wants to search summaries ("find context about database")
-- Asks about context management ("how many summaries", "delete old contexts")
+- Wants to search memories ("find context about database")
+- Asks about context management ("how many memories", "delete old contexts")
 
 ## Directory Structure
 
-Context summaries are stored in the project's `.claude/summaries/` directory:
+Context memories are stored in the project's `.claude/memories/` directory:
 
 ```
-.claude/summaries/
-├── index.json                      # Global index of all summaries
+.claude/memories/
+├── index.json                      # Global index of all memories
 └── {context_id}/
     ├── {timestamp}/
-    │   ├── summary.md              # Human-readable summary
+    │   ├── memory.json            # Memory stored as JSON
     │   └── metadata.json           # Machine-readable metadata
     └── latest -> {timestamp}       # Symlink to most recent
 ```
@@ -34,7 +34,7 @@ Context summaries are stored in the project's `.claude/summaries/` directory:
 
 ### 1. List Contexts
 
-Read `.claude/summaries/index.json` and present available contexts.
+Read `.claude/memories/index.json` and present available contexts.
 
 **Output format:**
 ```
@@ -50,11 +50,11 @@ Total: 2 contexts stored
 
 ### 2. Load Context
 
-Load a specific context summary and optionally inject into conversation.
+Load a specific context memory and optionally inject into conversation.
 
 **Steps:**
-1. Read summary from `.claude/summaries/{id}/{timestamp}/summary.md`
-2. Read metadata from `.claude/summaries/{id}/{timestamp}/metadata.json`
+1. Read memory from `.claude/memories/{id}/{timestamp}/memory.md`
+2. Read metadata from `.claude/memories/{id}/{timestamp}/metadata.json`
 3. Present to user
 4. Ask if they want it injected into current conversation
 
@@ -67,11 +67,11 @@ Load a specific context summary and optionally inject into conversation.
 
 ### 3. Search Contexts
 
-Search through summaries by keyword or topic.
+Search through memories by keyword or topic.
 
 **Steps:**
 1. Read index.json for context list
-2. For each context, read summary.md
+2. For each context, read memory.md
 3. Search for matching keywords
 4. Return ranked results
 
@@ -94,9 +94,9 @@ Provide overview of stored contexts.
 
 Use these tools to implement actions:
 
-- **Read** - Read index.json and summary files
-- **Glob** - Find summary files: `.claude/summaries/**/*.md`
-- **Grep** - Search within summaries for keywords
+- **Read** - Read index.json and memory files
+- **Glob** - Find memory files: `.claude/memories/**/*.md`
+- **Grep** - Search within memories for keywords
 
 ## Response Guidelines
 
@@ -108,8 +108,8 @@ Use these tools to implement actions:
 
 ## Error Handling
 
-- **No summaries directory**: "No context summaries found. Summaries are created automatically when context is compacted."
-- **No index.json**: "Summary index not found. Run `/compact` to create your first summary."
+- **No memories directory**: "No context memories found. Summaries are created automatically when context is compacted."
+- **No index.json**: "Summary index not found. Run `/compact` to create your first memory."
 - **Context not found**: "Context '{id}' not found. Available contexts: [list]"
 
 ## Integration with PreCompact Hook
@@ -119,7 +119,7 @@ This skill reads data created by the PreCompact hook, which is automatically reg
 **Index.json structure:**
 ```json
 {
-  "summaries": [
+  "memories": [
     {
       "context_id": "abc123...",
       "timestamp": "20251123_190448",
@@ -128,7 +128,7 @@ This skill reads data created by the PreCompact hook, which is automatically reg
       "project": "/path/to/project",
       "files_modified": ["file1.py", "file2.ts"],
       "message_count": 150,
-      "summary_path": "abc123.../20251123_190448/summary.md"
+      "memory_path": "abc123.../20251123_190448/memory.md"
     }
   ],
   "last_context": "abc123..."
@@ -141,10 +141,10 @@ This skill reads data created by the PreCompact hook, which is automatically reg
 **Response:** [List contexts table]
 
 **User:** "Load the most recent context"
-**Response:** [Show summary, ask about context injection]
+**Response:** [Show memory, ask about context injection]
 
 **User:** "Find contexts about authentication"
 **Response:** [Search and show matching contexts]
 
-**User:** "How many summaries are stored?"
+**User:** "How many memories are stored?"
 **Response:** [Show statistics]

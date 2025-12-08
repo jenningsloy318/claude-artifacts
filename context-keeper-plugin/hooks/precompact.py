@@ -3,7 +3,7 @@
 PreCompact Hook: Summarizes and persists Claude Code sessions before compaction.
 
 This hook triggers before context compaction (manual /compact or automatic).
-It reads the full transcript, generates a summary, and saves it locally.
+It reads the full transcript, generates a memory, and saves it locally.
 
 Input (stdin): JSON with session metadata
 Output (stdout): Status message for user
@@ -12,7 +12,7 @@ Exit codes:
   1 - Non-blocking error (logged but doesn't block compaction)
 
 Environment variables:
-  CLAUDE_SUMMARY_API_KEY - Dedicated API key for Claude summarization (required for LLM summary)
+  CLAUDE_SUMMARY_API_KEY - Dedicated API key for Claude summarization (required for LLM memory)
   CLAUDE_SUMMARY_API_URL - Custom API base URL (optional, e.g., for proxy or region)
 """
 
@@ -316,14 +316,14 @@ def get_api_url() -> Optional[str]:
     return None
 
 
-def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str]:
-    """Generate comprehensive summary using Claude API."""
-    log_debug("=== generate_summary_with_llm() START ===")
+def generate_memory_with_llm(content: dict, session_info: dict) -> Optional[str]:
+    """Generate comprehensive memory using Claude API."""
+    log_debug("=== generate_memory_with_llm() START ===")
 
     api_key = get_api_key()
     if not api_key:
         log_info("No API key found (set CLAUDE_SUMMARY_API_KEY)")
-        log_debug("=== generate_summary_with_llm() END (no API key) ===")
+        log_debug("=== generate_memory_with_llm() END (no API key) ===")
         return None
 
     log_debug(f"API key obtained, length: {len(api_key)} chars")
@@ -331,7 +331,7 @@ def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str
     # Ensure anthropic package is installed (auto-install if needed)
     if not _ensure_anthropic_installed():
         log_error("anthropic package not available and auto-install failed")
-        log_debug("=== generate_summary_with_llm() END (no anthropic) ===")
+        log_debug("=== generate_memory_with_llm() END (no anthropic) ===")
         return None
 
     import anthropic
@@ -352,10 +352,10 @@ def generate_summary_with_llm(content: dict, session_info: dict) -> Optional[str
 The user provided these specific instructions for this compaction:
 {custom_instructions}
 
-**Important:** Incorporate the user's custom instructions into your summary. Focus on what they've asked for.
+**Important:** Incorporate the user's custom instructions into your memory. Focus on what they've asked for.
 """
 
-    prompt = f"""Analyze this Claude Code session and create a comprehensive summary for future context restoration.
+    prompt = f"""Analyze this Claude Code session and create a comprehensive memory for future context restoration.
 
 ## What MUST be preserved:
 - Key architecture changes (system design, structural modifications, refactoring decisions)
@@ -405,7 +405,7 @@ This session has been filtered to preserve only essential content as specified a
 
 ---
 
-Create a summary with these sections:
+Create a memory with these sections:
 
 ## Topics Discussed
 - List main themes and subjects covered
@@ -468,17 +468,17 @@ Be comprehensive but concise. Focus on the essential context that would help res
             messages=[{"role": "user", "content": prompt}]
         )
         log_debug(f"LLM response received, content length: {len(response.content[0].text)} chars")
-        log_debug("=== generate_summary_with_llm() END (success) ===")
+        log_debug("=== generate_memory_with_llm() END (success) ===")
         return response.content[0].text
     except Exception as e:
         log_error(f"LLM summarization failed: {e}")
         log_debug(f"Exception type: {type(e).__name__}")
-        log_debug("=== generate_summary_with_llm() END (exception) ===")
+        log_debug("=== generate_memory_with_llm() END (exception) ===")
         return None
 
 
-def generate_summary_structured(content: dict, session_info: dict) -> str:
-    """Generate structured summary without LLM (fallback)."""
+def generate_memory_structured(content: dict, session_info: dict) -> str:
+    """Generate structured memory without LLM (fallback)."""
     files_modified = content.get('files_modified', [])
     tool_calls = content.get('tool_calls', [])
     user_messages = content.get('user_messages', [])
@@ -505,7 +505,7 @@ def generate_summary_structured(content: dict, session_info: dict) -> str:
 {custom_instructions}
 """
 
-    summary = f"""# Session Summary (Structured Extraction)
+    memory = f"""# Session Summary (Structured Extraction)
 
 ## Metadata
 - **Session ID:** {session_info.get('session_id', 'unknown')}
@@ -530,57 +530,62 @@ def generate_summary_structured(content: dict, session_info: dict) -> str:
 {', '.join(list(topics)[:15]) if topics else 'None extracted'}
 
 ---
-*Note: This is a structured extraction. LLM-based summary unavailable (no API key or error).*
+*Note: This is a structured extraction. LLM-based memory unavailable (no API key or error).*
 """
-    return summary
+    return memory
 
 
-def generate_summary(content: dict, session_info: dict) -> str:
-    """Generate summary with LLM, falling back to structured extraction."""
+def generate_memory(content: dict, session_info: dict) -> str:
+    """Generate memory with LLM, falling back to structured extraction."""
     # Try LLM first
-    llm_summary = generate_summary_with_llm(content, session_info)
-    if llm_summary:
-        return llm_summary
+    llm_memory = generate_memory_with_llm(content, session_info)
+    if llm_memory:
+        return llm_memory
 
     # Fall back to structured extraction
     log_info("Using structured extraction (LLM unavailable)")
-    return generate_summary_structured(content, session_info)
+    return generate_memory_structured(content, session_info)
 
 
 # ============================================================================
 # File Storage
 # ============================================================================
 
-def get_summaries_dir(project_path: str) -> Path:
-    """Get the summaries directory for the project."""
-    return Path(project_path) / ".claude" / "summaries"
+def get_memories_dir(project_path: str) -> Path:
+    """Get the memories directory for the project."""
+    return Path(project_path) / ".claude" / "memories"
 
 
-def save_summary(
+def save_memory(
     session_id: str,
-    summary: str,
+    memory: str,
     metadata: dict,
     project_path: str
 ) -> Path:
-    """Save summary and metadata to file system with timestamp versioning."""
-    summaries_dir = get_summaries_dir(project_path)
+    """Save memory and metadata to file system with timestamp versioning."""
+    memories_dir = get_memories_dir(project_path)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Create session/timestamp directory
-    session_dir = summaries_dir / session_id / timestamp
+    session_dir = memories_dir / session_id / timestamp
     session_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save summary
-    summary_path = session_dir / "summary.md"
-    summary_path.write_text(summary, encoding='utf-8')
+    # Save memory as JSON
+    memory_data = {
+        "content": memory,
+        "timestamp": timestamp,
+        "session_id": session_id
+    }
+    memory_path = session_dir / "memory.json"
+    memory_path.write_text(json.dumps(memory_data, indent=2, ensure_ascii=False), encoding='utf-8')
 
     # Save metadata
-    metadata['summary_timestamp'] = timestamp
+    metadata['memory_timestamp'] = timestamp
     metadata_path = session_dir / "metadata.json"
     metadata_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding='utf-8')
 
     # Update latest symlink
-    latest_link = summaries_dir / session_id / "latest"
+    latest_link = memories_dir / session_id / "latest"
     if latest_link.is_symlink():
         latest_link.unlink()
     elif latest_link.exists():
@@ -592,22 +597,22 @@ def save_summary(
         log_error(f"Failed to create latest symlink: {e}")
 
     # Update global index
-    update_index(summaries_dir, session_id, timestamp, metadata)
+    update_index(memories_dir, session_id, timestamp, metadata)
 
-    return summary_path
+    return memory_path
 
 
-def update_index(summaries_dir: Path, session_id: str, timestamp: str, metadata: dict):
-    """Update the summaries index file."""
-    index_path = summaries_dir / "index.json"
+def update_index(memories_dir: Path, session_id: str, timestamp: str, metadata: dict):
+    """Update the memories index file."""
+    index_path = memories_dir / "index.json"
 
     if index_path.exists():
         try:
             index = json.loads(index_path.read_text(encoding='utf-8'))
         except json.JSONDecodeError:
-            index = {"summaries": [], "last_session": None}
+            index = {"memories": [], "last_session": None}
     else:
-        index = {"summaries": [], "last_session": None}
+        index = {"memories": [], "last_session": None}
 
     # Add new entry at the beginning
     entry = {
@@ -617,24 +622,24 @@ def update_index(summaries_dir: Path, session_id: str, timestamp: str, metadata:
         "trigger": metadata.get('trigger', ''),
         "project": metadata.get('cwd', ''),
         "message_count": metadata.get('message_count', 0),
-        "summary_path": f"{session_id}/{timestamp}/summary.md"
+        "memory_path": f"{session_id}/{timestamp}/memory.json"
     }
 
-    index["summaries"].insert(0, entry)
+    index["memories"].insert(0, entry)
     index["last_session"] = session_id
 
     # Keep only last 100 entries
-    index["summaries"] = index["summaries"][:100]
+    index["memories"] = index["memories"][:100]
 
     # Ensure directory exists
-    summaries_dir.mkdir(parents=True, exist_ok=True)
+    memories_dir.mkdir(parents=True, exist_ok=True)
     index_path.write_text(json.dumps(index, indent=2, ensure_ascii=False), encoding='utf-8')
 
 
-def extract_topics_from_summary(summary: str) -> list[str]:
-    """Extract topic tags from summary."""
+def extract_topics_from_memory(memory: str) -> list[str]:
+    """Extract topic tags from memory."""
     # Look for hashtags
-    hashtags = re.findall(r'#(\w+)', summary)
+    hashtags = re.findall(r'#(\w+)', memory)
     return list(set(hashtags))[:10]
 
 
@@ -691,7 +696,7 @@ def find_mcp_config(server_pattern: str) -> dict | None:
     return None
 
 
-async def call_nowledge_tools(mcp_config: dict, summary: str, metadata: dict) -> dict:
+async def call_nowledge_tools(mcp_config: dict, memory: str, metadata: dict) -> dict:
     """Call nowledge MCP tools via HttpConnector.
 
     This function follows the standard MCP HTTP Connector pattern from
@@ -699,7 +704,7 @@ async def call_nowledge_tools(mcp_config: dict, summary: str, metadata: dict) ->
 
     Args:
         mcp_config: Dict with name, url, headers from find_mcp_config()
-        summary: Session summary to persist
+        memory: Session memory to persist
         metadata: Session metadata
 
     Returns:
@@ -742,7 +747,7 @@ Files modified: {len(files_modified)}
 Message count: {metadata.get('message_count', 0)}
 
 Summary excerpt:
-{summary[:1500]}"""
+{memory[:1500]}"""
 
                 result = await connector.call_tool(
                     name="memory_add",
@@ -750,7 +755,7 @@ Summary excerpt:
                         "content": memory_content,
                         "title": f"Claude Code Session: {', '.join(topics[:3]) if topics else session_id[:8]}",
                         "importance": 0.7,
-                        "labels": ",".join(["claude-code", "session-summary"] + topics[:3]),
+                        "labels": ",".join(["claude-code", "session-memory"] + topics[:3]),
                         "source": "context-keeper-precompact"
                     }
                 )
@@ -770,7 +775,7 @@ Summary excerpt:
                         "client": "claude-code",
                         "project_path": metadata.get("cwd", ""),
                         "persist_mode": "current",
-                        "summary": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(metadata.get('topics', [])[:3])}"[:100]
+                        "memory": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(metadata.get('topics', [])[:3])}"[:100]
                     }
                 )
                 log_debug(f"thread_persist result: {result}")
@@ -792,7 +797,7 @@ Summary excerpt:
                 pass
 
 
-def persist_to_nowledge(summary: str, metadata: dict, content: dict) -> bool:
+def persist_to_nowledge(memory: str, metadata: dict, content: dict) -> bool:
     """
     Persist memory and thread to nowledge MCP server using HttpConnector.
 
@@ -800,7 +805,7 @@ def persist_to_nowledge(summary: str, metadata: dict, content: dict) -> bool:
     Follows pattern from: specification/11-mcp-http-connector/
 
     Returns True if successful, False otherwise.
-    Non-blocking - failures don't affect local summary storage.
+    Non-blocking - failures don't affect local memory storage.
     """
     log_debug("=== persist_to_nowledge() START ===")
 
@@ -851,7 +856,7 @@ def persist_to_nowledge(summary: str, metadata: dict, content: dict) -> bool:
     try:
         import asyncio
         log_debug("Calling nowledge tools...")
-        results = asyncio.run(call_nowledge_tools(mcp_config, summary, metadata))
+        results = asyncio.run(call_nowledge_tools(mcp_config, memory, metadata))
         success = results.get("memory", False) or results.get("thread", False)
         log_debug(f"=== persist_to_nowledge() END (success={success}) ===")
         return success
@@ -925,30 +930,30 @@ def main():
         if custom_instructions:
             print(f"📝 [context-keeper] Custom instructions: {custom_instructions[:50]}{'...' if len(custom_instructions) > 50 else ''}", file=sys.stderr)
 
-        # Generate summary
-        print("🤖 [context-keeper] Generating summary with AI...", file=sys.stderr)
-        summary = generate_summary(content, session_info)
+        # Generate memory
+        print("🤖 [context-keeper] Generating memory with AI...", file=sys.stderr)
+        memory = generate_memory(content, session_info)
 
         # Prepare metadata
         metadata = {
             **session_info,
-            "topics": extract_topics_from_summary(summary),
+            "topics": extract_topics_from_memory(memory),
             "files_modified": content.get("files_modified", []),
             "message_count": content.get("message_count", 0),
             "tool_call_count": len(content.get("tool_calls", []))
         }
 
         # Save to project directory
-        print("💾 [context-keeper] Saving summary...", file=sys.stderr)
-        summary_path = save_summary(session_id, summary, metadata, cwd)
+        print("💾 [context-keeper] Saving memory...", file=sys.stderr)
+        memory_path = save_memory(session_id, memory, metadata, cwd)
 
-        log_info(f"Summary saved: {summary_path}")
+        log_info(f"Summary saved: {memory_path}")
         log_info(f"Files modified: {len(metadata['files_modified'])}")
         log_info(f"Topics: {', '.join(metadata['topics'][:5]) if metadata['topics'] else 'none extracted'}")
 
         # Persist to nowledge (non-blocking, optional)
         try:
-            nowledge_success = persist_to_nowledge(summary, metadata, content)
+            nowledge_success = persist_to_nowledge(memory, metadata, content)
             if nowledge_success:
                 print("☁️  [context-keeper] Persisted to nowledge", file=sys.stderr)
         except Exception:

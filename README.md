@@ -93,7 +93,7 @@ Automatically saves context summaries before compaction and restores context on 
 **Features:**
 - PreCompact hook for automatic context summarization
 - SessionStart hook for context restoration
-- `/load-context` command for manual loading
+- `/load-memory` command for manual loading
 - Context management skill for natural language queries
 - LLM-based or structured extraction summaries
 

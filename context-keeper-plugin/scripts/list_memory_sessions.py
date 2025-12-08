@@ -12,17 +12,17 @@ from pathlib import Path
 from collections import defaultdict
 
 
-def get_summaries_dir() -> Path:
-    """Get the summaries directory for the current project."""
+def get_memories_dir() -> Path:
+    """Get the memories directory for the current project."""
     cwd = Path.cwd()
-    return cwd / ".claude" / "summaries"
+    return cwd / ".claude" / "memories"
 
 
 def load_index_with_jq(index_path: Path) -> list:
-    """Load summaries using jq for efficiency."""
+    """Load memories using jq for efficiency."""
     try:
         # Extract only needed fields: session_id, timestamp, created_at, trigger, project, message_count
-        jq_query = '.summaries | map({session_id, timestamp, created_at, trigger, project, message_count})'
+        jq_query = '.memories | map({session_id, timestamp, created_at, trigger, project, message_count})'
         result = subprocess.run(
             ['jq', '-c', jq_query],
             stdin=open(index_path, 'r'),
@@ -41,7 +41,7 @@ def load_index_fallback(index_path: Path) -> list:
     """Fallback: load full index.json."""
     try:
         index = json.loads(index_path.read_text(encoding='utf-8'))
-        return index.get("summaries", [])
+        return index.get("memories", [])
     except (json.JSONDecodeError, FileNotFoundError):
         return []
 
@@ -58,19 +58,19 @@ def format_timestamp(created_at: str) -> str:
 
 
 def main():
-    summaries_dir = get_summaries_dir()
-    index_path = summaries_dir / "index.json"
+    memories_dir = get_memories_dir()
+    index_path = memories_dir / "index.json"
 
     if not index_path.exists():
-        print("No sessions found. Context summaries are created automatically when you run `/compact`.")
+        print("No sessions found. Context memories are created automatically when you run `/compact`.")
         return
 
     # Try jq first, then fallback
-    summaries = load_index_with_jq(index_path)
-    if summaries is None:
-        summaries = load_index_fallback(index_path)
+    memories = load_index_with_jq(index_path)
+    if memories is None:
+        memories = load_index_fallback(index_path)
 
-    if not summaries:
+    if not memories:
         print("No sessions recorded yet. Your first context will be saved on the next compaction.")
         return
 
@@ -83,13 +83,13 @@ def main():
         "total_messages": 0
     })
 
-    for summary in summaries:
-        sid = summary.get("session_id", "unknown")
+    for memory in memories:
+        sid = memory.get("session_id", "unknown")
         sessions[sid]["compaction_count"] += 1
-        sessions[sid]["total_messages"] += summary.get("message_count", 0)
-        sessions[sid]["project"] = summary.get("project", "")
+        sessions[sid]["total_messages"] += memory.get("message_count", 0)
+        sessions[sid]["project"] = memory.get("project", "")
 
-        created = summary.get("created_at", "")
+        created = memory.get("created_at", "")
         if not sessions[sid]["latest_created"] or created > sessions[sid]["latest_created"]:
             sessions[sid]["latest_created"] = created
             sessions[sid]["latest_timestamp"] = format_timestamp(created)
@@ -111,7 +111,7 @@ def main():
         project = Path(data["project"]).name if data["project"] else "-"
         print(f"| {i} | {short_sid} | {data['compaction_count']} | {data['latest_timestamp']} | {project} | {data['total_messages']} |")
 
-    print(f"\n**Total:** {len(sessions)} sessions with {len(summaries)} context summaries")
+    print(f"\n**Total:** {len(sessions)} sessions with {len(memories)} context memories")
     print("\n### Quick Actions")
     print("- Use `/context-keeper:list-context <session-id>` to see all contexts for a session")
     print("- Use `/context-keeper:load-context <session-id>` to load the latest context from a session")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Load Context Script: Load a specific context summary by session ID or timestamp.
+Load Context Script: Load a specific context memory by session ID or timestamp.
 
 Uses jq subprocess for efficient extraction, falls back to full JSON parsing.
 """
@@ -11,17 +11,17 @@ import subprocess
 from pathlib import Path
 
 
-def get_summaries_dir() -> Path:
-    """Get the summaries directory for the current project."""
+def get_memories_dir() -> Path:
+    """Get the memories directory for the current project."""
     cwd = Path.cwd()
-    return cwd / ".claude" / "summaries"
+    return cwd / ".claude" / "memories"
 
 
 def load_latest_with_jq(index_path: Path) -> dict:
-    """Load the latest summary entry using jq."""
+    """Load the latest memory entry using jq."""
     try:
         result = subprocess.run(
-            ['jq', '-c', '.summaries[0]'],
+            ['jq', '-c', '.memories[0]'],
             stdin=open(index_path, 'r'),
             capture_output=True,
             text=True,
@@ -35,10 +35,10 @@ def load_latest_with_jq(index_path: Path) -> dict:
 
 
 def find_by_identifier_with_jq(index_path: Path, identifier: str) -> dict:
-    """Find a summary by session_id or timestamp prefix using jq."""
+    """Find a memory by session_id or timestamp prefix using jq."""
     try:
         # Search by session_id prefix or timestamp
-        jq_query = f'.summaries | map(select(.session_id | startswith("{identifier}")) // select(.timestamp | startswith("{identifier}"))) | .[0]'
+        jq_query = f'.memories | map(select(.session_id | startswith("{identifier}")) // select(.timestamp | startswith("{identifier}"))) | .[0]'
         result = subprocess.run(
             ['jq', '-c', jq_query],
             stdin=open(index_path, 'r'),
@@ -57,7 +57,7 @@ def load_index_fallback(index_path: Path) -> list:
     """Fallback: load full index.json."""
     try:
         index = json.loads(index_path.read_text(encoding='utf-8'))
-        return index.get("summaries", [])
+        return index.get("memories", [])
     except (json.JSONDecodeError, FileNotFoundError):
         return []
 
@@ -73,11 +73,11 @@ def format_timestamp(created_at: str) -> str:
 
 
 def main():
-    summaries_dir = get_summaries_dir()
-    index_path = summaries_dir / "index.json"
+    memories_dir = get_memories_dir()
+    index_path = memories_dir / "index.json"
 
-    if not summaries_dir.exists() or not index_path.exists():
-        print("No context summaries found. Run `/compact` to create your first summary.")
+    if not memories_dir.exists() or not index_path.exists():
+        print("No context memories found. Run `/compact` to create your first memory.")
         return
 
     # Get optional identifier from args
@@ -90,8 +90,8 @@ def main():
         entry = find_by_identifier_with_jq(index_path, identifier)
         if entry is None:
             # Fallback
-            summaries = load_index_fallback(index_path)
-            for s in summaries:
+            memories = load_index_fallback(index_path)
+            for s in memories:
                 if s.get("session_id", "").startswith(identifier) or s.get("timestamp", "").startswith(identifier):
                     entry = s
                     break
@@ -99,32 +99,37 @@ def main():
         # Load latest
         entry = load_latest_with_jq(index_path)
         if entry is None:
-            summaries = load_index_fallback(index_path)
-            entry = summaries[0] if summaries else None
+            memories = load_index_fallback(index_path)
+            entry = memories[0] if memories else None
 
     if not entry:
         if identifier:
             print(f"No context found for '{identifier}'.")
             print("\nAvailable contexts:")
-            summaries = load_index_fallback(index_path)
-            for s in summaries[:5]:
+            memories = load_index_fallback(index_path)
+            for s in memories[:5]:
                 sid = s.get("session_id", "unknown")[:8]
                 ts = format_timestamp(s.get("created_at", ""))
                 print(f"  - [{sid}...] {ts}")
         else:
-            print("No context summaries found.")
+            print("No context memories found.")
         return
 
-    # Load the actual summary file
-    summary_path = summaries_dir / entry.get("summary_path", "")
-    if not summary_path.exists():
-        print(f"Summary file not found: {summary_path}")
+    # Load the actual memory file
+    memory_path = memories_dir / entry.get("memory_path", "")
+    if not memory_path.exists():
+        print(f"Memory file not found: {memory_path}")
         return
 
-    summary_content = summary_path.read_text(encoding='utf-8')
+    # Read memory as JSON
+    try:
+        memory_data = json.loads(memory_path.read_text(encoding='utf-8'))
+        memory_content = memory_data.get('content', '')
+    except (json.JSONDecodeError, FileNotFoundError):
+        memory_content = memory_path.read_text(encoding='utf-8')  # Fallback for old .md files
 
     # Display the context
-    print("## Context Summary Loaded\n")
+    print("## Context Memory Loaded\n")
     print(f"**Session ID:** {entry.get('session_id', 'unknown')}")
     print(f"**Created:** {format_timestamp(entry.get('created_at', ''))}")
     print(f"**Trigger:** {entry.get('trigger', '-')}")
@@ -132,7 +137,7 @@ def main():
     print()
     print("---")
     print()
-    print(summary_content)
+    print(memory_content)
     print()
     print("---")
     print("Would you like me to use this context for our conversation?")

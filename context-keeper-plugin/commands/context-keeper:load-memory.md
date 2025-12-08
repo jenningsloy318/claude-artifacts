@@ -1,23 +1,23 @@
 ---
-name: context-keeper:load-context
-description: Load a previous context summary for continuity after compaction
+name: context-keeper:load-memory
+description: Load a previous memory for continuity after compaction
 argument-hint: "[session-id or timestamp]"
 ---
 
-# Load Context Command
+# Load Memory Command
 
-Load a previous context summary to restore conversation state from before compaction.
+Load a previous memory to restore conversation state from before compaction.
 
 ## Arguments
 
-- `$ARGUMENTS` - Optional session ID or timestamp to load. If omitted, loads the most recent summary.
+- `$ARGUMENTS` - Optional session ID or timestamp to load. If omitted, loads the most recent memory.
 
 ## MANDATORY: Execute Script
 
 **YOU MUST run this command using Bash tool - DO NOT use Read tool to read index.json directly:**
 
 ```bash
-python3 context-keeper-plugin/scripts/load_context.py $ARGUMENTS
+python3 context-keeper-plugin/scripts/load_memory.py $ARGUMENTS
 ```
 
 This script uses `jq` for efficient JSON extraction. Running the script is REQUIRED - do not read files manually.
@@ -26,13 +26,13 @@ This script uses `jq` for efficient JSON extraction. Running the script is REQUI
 
 ```
 /context-keeper:load-context
-# Loads the most recent context summary
+# Loads the most recent context memory
 
 /context-keeper:load-context abc123
-# Loads summary for session starting with abc123
+# Loads memory for session starting with abc123
 
 /context-keeper:load-context 20251123_190448
-# Loads summary from specific timestamp
+# Loads memory from specific timestamp
 ```
 
 ## Output Format
@@ -48,7 +48,7 @@ When loading a context:
 
 ---
 
-[Full summary content here]
+[Full memory content here]
 
 ---
 Would you like me to use this context for our conversation?
@@ -65,7 +65,7 @@ Available contexts:
 
 ## Error Handling
 
-- **No summaries directory**: "No context summaries found. Run `/compact` to create your first summary."
+- **No memories directory**: "No context memories found. Run `/compact` to create your first memory."
 - **No index.json**: "Summary index not found."
 - **Summary not found**: Lists available contexts for user to choose from.
 

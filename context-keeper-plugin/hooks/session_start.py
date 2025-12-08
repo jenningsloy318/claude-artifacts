@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-SessionStart Hook: Reloads latest session summary into context after compaction.
+SessionStart Hook: Reloads latest session memory into context after compaction.
 
 This hook triggers when a session starts or resumes (including after compaction).
-It reads the most recent summary and outputs it to stdout, which Claude uses as context.
+It reads the most recent memory and outputs it to stdout, which Claude uses as context.
 
 Input (stdin): JSON with session metadata
 Output (stdout): Context to inject (becomes system context)
@@ -31,26 +31,26 @@ def read_hook_input() -> dict:
         return {}
 
 
-def get_summaries_dir(project_path: str) -> Path:
-    """Get the summaries directory for the project."""
-    return Path(project_path) / ".claude" / "summaries"
+def get_memories_dir(project_path: str) -> Path:
+    """Get the memories directory for the project."""
+    return Path(project_path) / ".claude" / "memories"
 
 
-def load_latest_summary(project_path: str, session_id: str = None) -> tuple[str, dict]:
+def load_latest_memory(project_path: str, session_id: str = None) -> tuple[str, dict]:
     """
-    Load the most recent summary for context injection.
+    Load the most recent memory for context injection.
 
     Returns:
-        tuple: (summary_content, metadata) or (None, None) if not found
+        tuple: (memory_content, metadata) or (None, None) if not found
     """
-    summaries_dir = get_summaries_dir(project_path)
+    memories_dir = get_memories_dir(project_path)
 
-    if not summaries_dir.exists():
+    if not memories_dir.exists():
         return None, None
 
     # Try to load from specific session if provided
     if session_id:
-        session_dir = summaries_dir / session_id
+        session_dir = memories_dir / session_id
         if session_dir.exists():
             latest_link = session_dir / "latest"
             if latest_link.exists():
@@ -60,21 +60,30 @@ def load_latest_summary(project_path: str, session_id: str = None) -> tuple[str,
                 else:
                     target = latest_link
 
-                summary_path = target / "summary.md" if target.is_dir() else None
+                memory_path = target / "memory.json" if target.is_dir() else None
                 metadata_path = target / "metadata.json" if target.is_dir() else None
 
-                if summary_path and summary_path.exists():
-                    summary = summary_path.read_text(encoding='utf-8')
+                if memory_path and memory_path.exists():
+                    try:
+                        memory_data = json.loads(memory_path.read_text(encoding='utf-8'))
+                        memory = memory_data.get('content', '')
+                    except json.JSONDecodeError:
+                        # Fallback for old .md files
+                        memory_path_old = target / "memory.md"
+                        if memory_path_old.exists():
+                            memory = memory_path_old.read_text(encoding='utf-8')
+                        else:
+                            memory = ""
                     metadata = {}
                     if metadata_path and metadata_path.exists():
                         try:
                             metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
                         except json.JSONDecodeError:
                             pass
-                    return summary, metadata
+                    return memory, metadata
 
     # Fallback: Load from index (most recent across all sessions)
-    index_path = summaries_dir / "index.json"
+    index_path = memories_dir / "index.json"
     if not index_path.exists():
         return None, None
 
@@ -82,7 +91,7 @@ def load_latest_summary(project_path: str, session_id: str = None) -> tuple[str,
     latest = None
     try:
         result = subprocess.run(
-            ['jq', '-r', '.summaries[0]'],
+            ['jq', '-r', '.memories[0]'],
             stdin=open(index_path, 'r'),
             capture_output=True,
             text=True,
@@ -98,27 +107,27 @@ def load_latest_summary(project_path: str, session_id: str = None) -> tuple[str,
     if latest is None:
         try:
             index = json.loads(index_path.read_text(encoding='utf-8'))
-            summaries = index.get("summaries", [])
-            if not summaries:
+            memories = index.get("memories", [])
+            if not memories:
                 return None, None
-            latest = summaries[0]
+            latest = memories[0]
         except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
             print(f"[context-keeper] Error: Failed to load from index: {e}", file=sys.stderr)
             return None, None
 
     try:
-        summary_path = summaries_dir / latest["summary_path"]
-        if summary_path.exists():
-            summary = summary_path.read_text(encoding='utf-8')
-            return summary, latest
+        memory_path = memories_dir / latest["memory_path"]
+        if memory_path.exists():
+            memory = memory_path.read_text(encoding='utf-8')
+            return memory, latest
     except (KeyError, TypeError) as e:
         print(f"[context-keeper] Error: Invalid index entry: {e}", file=sys.stderr)
 
     return None, None
 
 
-def format_context(summary: str, metadata: dict, source: str, permission_mode: str = "default") -> str:
-    """Format summary for context injection."""
+def format_context(memory: str, metadata: dict, source: str, permission_mode: str = "default") -> str:
+    """Format memory for context injection."""
 
     timestamp = metadata.get('timestamp', metadata.get('created_at', 'unknown'))
     session_id = metadata.get('session_id', 'unknown')
@@ -129,7 +138,7 @@ def format_context(summary: str, metadata: dict, source: str, permission_mode: s
     context = f"""<previous-session-context>
 ## Session Continuity Notice
 
-This context was automatically loaded from a previous session summary.
+This context was automatically loaded from a previous session memory.
 - **Previous Session ID:** {session_id[:16]}...
 - **Summary Created:** {timestamp}
 - **Compaction Trigger:** {trigger}
@@ -139,11 +148,11 @@ This context was automatically loaded from a previous session summary.
 
 ---
 
-{summary}
+{memory}
 
 ---
 
-*Use this context to maintain continuity with the previous conversation. The above summary captures what was discussed and accomplished before context compaction.*
+*Use this context to maintain continuity with the previous conversation. The above memory captures what was discussed and accomplished before context compaction.*
 </previous-session-context>"""
 
     return context
@@ -187,27 +196,27 @@ def main():
             print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(0)
 
-        # Load latest summary
+        # Load latest memory
         print("📂 [context-keeper] Searching for previous session context...", file=sys.stderr)
-        summary, metadata = load_latest_summary(cwd, session_id)
+        memory, metadata = load_latest_memory(cwd, session_id)
 
-        if not summary:
-            # No summary available - this is fine, just exit cleanly
+        if not memory:
+            # No memory available - this is fine, just exit cleanly
             print("ℹ️  [context-keeper] No previous session context found", file=sys.stderr)
             print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(0)
 
         print(f"📄 [context-keeper] Found context for session {session_id[:8] if session_id else 'unknown'}...", file=sys.stderr)
 
-        # Check if this summary is recent enough to be relevant
-        # Skip if the summary is from a very old session (>24 hours)
+        # Check if this memory is recent enough to be relevant
+        # Skip if the memory is from a very old session (>24 hours)
         try:
             created_at = metadata.get('timestamp', metadata.get('created_at', ''))
             if created_at:
                 # Parse ISO format
-                summary_time = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-                now = datetime.now(summary_time.tzinfo) if summary_time.tzinfo else datetime.now()
-                age_hours = (now - summary_time.replace(tzinfo=None)).total_seconds() / 3600
+                memory_time = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                now = datetime.now(memory_time.tzinfo) if memory_time.tzinfo else datetime.now()
+                age_hours = (now - memory_time.replace(tzinfo=None)).total_seconds() / 3600
 
                 if age_hours > 24:
                     # Summary is old, skip injection but don't error
@@ -220,7 +229,7 @@ def main():
 
         # Format and output context
         print("📥 [context-keeper] Loading context into session...", file=sys.stderr)
-        context = format_context(summary, metadata or {}, source, permission_mode)
+        context = format_context(memory, metadata or {}, source, permission_mode)
         print(context)
 
         # Print visible completion message
