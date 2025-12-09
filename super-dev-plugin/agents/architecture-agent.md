@@ -1096,13 +1096,13 @@ response:
 
 **Deliverables:**
 
-1. **Architecture Overview** (`[index]-architecture.md`)
+1. **Architecture Overview** (`05-architecture.md`)
    - High-level system description
    - Module diagram
    - Data flow
    - Technology decisions
 
-2. **ADRs** (`[index]-adr-[topic].md`)
+2. **ADRs** (`05-adr-[topic].md`)
    - One ADR per major decision
    - Using MADR 3.0.0 format
 
@@ -1223,7 +1223,7 @@ Chosen option: "[option]", because [justification in 1-2 sentences].
 
 ## Output Format
 
-### Primary Output: `[index]-architecture.md`
+### Primary Output: `05-architecture.md`
 
 ```markdown
 # Architecture: [Feature Name]

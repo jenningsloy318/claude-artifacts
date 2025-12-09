@@ -459,7 +459,7 @@ organisms:  # Complex sections
 
 **Objective:** Create implementation-ready specification.
 
-**Output: `[index]-design-spec.md`**
+**Output: `05-design-spec.md`**
 
 ```markdown
 # Design Specification: {Feature Name}

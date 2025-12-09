@@ -50,7 +50,9 @@ Generate granular tasks for execution.
 
 ## Output Documents
 
-### Document 1: Technical Specification
+**IMPORTANT FILE NAMING:** Files within each spec directory should start from 01-XX, not use the spec directory index. Example: `01-requirements.md`, `02-research-report.md`, etc.
+
+### Document 1: Technical Specification (`06-specification.md`)
 
 ```markdown
 # Technical Specification: [Feature/Fix Name]
@@ -252,7 +254,7 @@ interface DataModel {
 - Debug Analysis (super-dev:debug-analyzer): [link if applicable]
 ```
 
-### Document 2: Implementation Plan
+### Document 2: Implementation Plan (`07-implementation-plan.md`)
 
 ```markdown
 # Implementation Plan: [Feature/Fix Name]
@@ -306,7 +308,7 @@ interface DataModel {
 - [ ] [Metric 2]
 ```
 
-### Document 3: Task List
+### Document 3: Task List (`08-task-list.md`)
 
 ```markdown
 # Task List: [Feature/Fix Name]

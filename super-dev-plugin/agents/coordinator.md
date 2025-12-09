@@ -256,10 +256,10 @@ Task(
 
 | Transition | Verify |
 |------------|--------|
-| → Phase 3 | requirements.md exists |
-| → Phase 5 | research-report.md exists |
-| → Phase 6 | assessment.md exists (+ debug-analysis.md if bug) |
-| → Phase 7 | specification.md, implementation-plan.md, task-list.md exist |
+| → Phase 3 | 01-requirements.md exists |
+| → Phase 5 | 02-research-report.md exists |
+| → Phase 6 | 04-assessment.md exists (+ 03-debug-analysis.md if bug) |
+| → Phase 7 | 06-specification.md, 07-implementation-plan.md, 08-task-list.md exist |
 | → Phase 8 | All spec documents reviewed |
 | → Phase 10 | Code review approved |
 | → Phase 11 | Documentation updated |

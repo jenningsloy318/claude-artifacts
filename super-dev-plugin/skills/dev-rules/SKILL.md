@@ -167,20 +167,22 @@ All features, bug fixes, error fixes, improvements, and code refactoring should 
 ### Keep Spec Documents Current (MANDATORY)
 All specification documents MUST be updated as work progresses:
 
-1. **Task List (`[index]-task-list.md`)**
+**IMPORTANT:** Files within each spec directory should start from 01, not use the spec directory index.
+
+1. **Task List (`01-task-list.md`)**
    - Mark tasks complete immediately when done: `- [x] Task description`
    - Add new tasks discovered during implementation
    - Update status at every milestone boundary
    - Never leave task list stale between commits
 
-2. **Implementation Summary (`[index]-implementation-summary.md`)**
+2. **Implementation Summary (`06-implementation-summary.md`)**
    - Update after EACH milestone/phase completion
    - Document files created/modified/deleted
    - Record technical decisions and rationale
    - Track challenges encountered and solutions
    - Note any deviations from original specification
 
-3. **Specification (`[index]-specification.md`)**
+3. **Specification (`03-specification.md`)**
    - Update when implementation differs from original spec
    - Use `[UPDATED: YYYY-MM-DD]` marker for changed sections
    - Document why the change was necessary

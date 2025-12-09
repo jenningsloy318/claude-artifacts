@@ -163,7 +163,7 @@ Analyze information and identify/create spec directory under `specification/`.
 
 **AGENT:** Invoke `super-dev:requirements-clarifier`
 
-**Output:** `[index]-requirements.md`
+**Output:** `01-requirements.md`
 
 ---
 
@@ -177,7 +177,7 @@ The research-agent:
 - Filters by recency
 - Flags deprecated information
 
-**Output:** `[index]-research-report.md` with freshness scores
+**Output:** `02-research-report.md` with freshness scores
 
 ---
 
@@ -190,7 +190,7 @@ The debug-analyzer:
 - Uses ast-grep for structural analysis
 - Tracks file coverage for debugging scope
 
-**Output:** `[index]-debug-analysis.md`
+**Output:** `03-debug-analysis.md`
 
 ---
 
@@ -203,7 +203,7 @@ The code-assessor:
 - Uses ast-grep for structural analysis
 - Tracks file coverage percentage
 
-**Output:** `[index]-assessment.md`
+**Output:** `04-assessment.md`
 
 ---
 
@@ -211,7 +211,7 @@ The code-assessor:
 
 **AGENT:** Invoke `super-dev:architecture-agent`
 
-**Output:** `[index]-architecture.md` and ADRs
+**Output:** `05-architecture.md` and ADRs
 
 ---
 
@@ -219,7 +219,7 @@ The code-assessor:
 
 **AGENT:** Invoke `super-dev:ui-ux-designer`
 
-**Output:** `[index]-design-spec.md`
+**Output:** `05-design-spec.md`
 
 ---
 
@@ -228,6 +228,10 @@ The code-assessor:
 **AGENT:** Invoke `super-dev:spec-writer`
 
 **Output:** Three files (or sub-specifications for large features)
+- `06-specification.md` - Technical specification
+- `07-implementation-plan.md` - Implementation plan
+- `08-task-list.md` - Task list
+(Or sub-specifications for large features)
 
 ---
 
@@ -302,7 +306,7 @@ After code review is complete and approved, update all documentation:
 - Single pass to update all documents
 - Coordinates commit with code changes
 
-**Output:** Updated `[index]-task-list.md`, `[index]-implementation-summary.md`, and `[index]-specification.md`
+**Output:** Updated `08-task-list.md`, `09-implementation-summary.md`, and `06-specification.md`
 
 ---
 
