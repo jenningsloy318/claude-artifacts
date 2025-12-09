@@ -178,14 +178,48 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 Contributions welcome! Please open an issue or submit a pull request at https://github.com/jenningsloy318/super-skill-claude-artifacts
 
+## Troubleshooting
+
+### Hook Not Triggering
+
+1. Verify plugin is installed: `claude plugin list`
+2. Ensure Python 3 is available: `which python3`
+
+### No Summary Generated
+
+1. Check stderr for errors
+2. Verify transcript_path exists and is readable
+
+### LLM Summary Failing
+
+1. Verify API key is set: `echo $CLAUDE_SUMMARY_API_KEY`
+2. Check anthropic package is installed: `pip show anthropic`
+3. Verify API key has appropriate permissions
+
+### "bool object is not iterable" Error
+
+If you encounter this error during `/compact`:
+
+1. **Plugin Cache Issue**: Claude Code caches plugins, so fixes need to be applied to the cache location
+2. **Update Cached Plugin**: Copy fixed scripts to `~/.claude/plugins/cache/super-skill-claude-artifacts/context-keeper/1.0.0/scripts/`
+3. **Clear Python Cache**: Remove `__pycache__` directories to ensure changes take effect
+4. **Debug Mode**: Check the script output for detailed error information
+
+The issue was caused by list comprehensions in the prompt generation not properly handling mixed data types in message filtering. The fix includes:
+- Defensive type checking with `isinstance()`
+- Proper string conversion with `str()`
+- Explicit boolean checks in list comprehensions
+
+### Manual Memory Saving
+
+For testing or manual memory creation:
+
+```bash
+# Create a memory manually (for debugging)
+python3 context-keeper-plugin/scripts/manual_save_memory.py
+```
+
 ## Changelog
-
-### v1.1.0
-
-- Remove `ANTHROPIC_API_KEY` fallback
-- Use dedicated `CLAUDE_SUMMARY_API_KEY` exclusively for summarization
-- Simplify configuration with single API key requirement
-- Add nowledge MCP integration via HttpConnector
 
 ### v1.0.0
 
@@ -196,3 +230,14 @@ Contributions welcome! Please open an issue or submit a pull request at https://
 - Context management skill
 - Support for custom API URL
 - Graceful fallback to structured extraction
+- Remove `ANTHROPIC_API_KEY` fallback
+- Use dedicated `CLAUDE_SUMMARY_API_KEY` exclusively for summarization
+- Simplify configuration with single API key requirement
+- Add nowledge MCP integration via HttpConnector
+- **Bug Fix**: Fixed persistent "'bool' object is not iterable" error in save_memory.py
+  - Added defensive type checking in list comprehensions for prompt generation
+  - Fixed message filtering to properly handle mixed data types
+  - Added extensive debug logging for easier troubleshooting
+  - Updated plugin cache handling instructions
+- **Documentation**: Added troubleshooting section for common errors
+- **Plugin Cache**: Improved instructions for updating cached plugin files

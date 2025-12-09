@@ -17,7 +17,7 @@ Manually trigger the context-keeper precompact hook to save the current session 
 **YOU MUST run this command using Bash tool - DO NOT handle memory creation manually:**
 
 ```bash
-echo '{"custom_instructions": "$ARGUMENTS"}' | python3 context-keeper-plugin/scripts/save_memory.py
+python3 context-keeper-plugin/scripts/save_memory.py
 ```
 
 This script:

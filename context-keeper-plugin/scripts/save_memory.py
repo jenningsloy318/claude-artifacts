@@ -34,6 +34,22 @@ MAX_TOKENS = 4000
 TIMEOUT_SECONDS = 90
 
 # ============================================================================
+# Type Safety Helpers
+# ============================================================================
+
+def ensure_list(value, default=None):
+    """Ensure value is a list, return default or empty list if not."""
+    if isinstance(value, list):
+        return value
+    return default if default is not None else []
+
+def ensure_string(value, default=""):
+    """Ensure value is a string, return default if not."""
+    if isinstance(value, str):
+        return value
+    return default
+
+# ============================================================================
 # Input/Output Helpers
 # ============================================================================
 
@@ -106,8 +122,8 @@ def log_info(message: str):
 
 
 def log_debug(message: str):
-    """No-op debug logging (disabled)."""
-    pass  # Debug logging disabled - use visible messages instead
+    """Debug logging to stderr."""
+    print(f"[DEBUG] {message}", file=sys.stderr)
 
 
 # ============================================================================
@@ -144,12 +160,24 @@ def extract_conversation_content(messages: list[dict]) -> dict:
     tool_calls = []
     files_modified = set()
 
+    # Ensure we have a list of messages
+    if not isinstance(messages, list):
+        log_debug(f"Expected list of messages, got {type(messages)}")
+        messages = []
+
     for msg in messages:
+        # Skip invalid messages
+        if not isinstance(msg, dict):
+            continue
+
         msg_type = msg.get('type', '')
 
         # Handle Claude Code transcript format (nested message object)
         nested_msg = msg.get('message', {})
-        role = nested_msg.get('role', '') if isinstance(nested_msg, dict) else ''
+        if not isinstance(nested_msg, dict):
+            nested_msg = {}
+
+        role = nested_msg.get('role', '')
         content = nested_msg.get('content', '') if isinstance(nested_msg, dict) else msg.get('content', '')
 
         # User messages
@@ -158,7 +186,7 @@ def extract_conversation_content(messages: list[dict]) -> dict:
                 # Skip system reminders
                 if '<system-reminder>' not in content:
                     user_messages.append(content[:2000])
-            elif isinstance(content, list):
+            elif isinstance(content, list) and content:
                 for block in content:
                     if isinstance(block, dict) and block.get('type') == 'text':
                         text = block.get('text', '')
@@ -169,7 +197,7 @@ def extract_conversation_content(messages: list[dict]) -> dict:
         elif msg_type == 'assistant' or role == 'assistant':
             if isinstance(content, str) and content.strip():
                 assistant_messages.append(content[:2000])
-            elif isinstance(content, list):
+            elif isinstance(content, list) and content:
                 for block in content:
                     if isinstance(block, dict):
                         block_type = block.get('type', '')
@@ -203,13 +231,22 @@ def extract_conversation_content(messages: list[dict]) -> dict:
                 if file_path:
                     files_modified.add(file_path)
 
-    return {
+    # Debug the values before returning
+    log_debug(f"[DEBUG] Before return - user_messages type: {type(user_messages)}, len: {len(user_messages) if isinstance(user_messages, list) else 'N/A'}")
+    log_debug(f"[DEBUG] Before return - assistant_messages type: {type(assistant_messages)}, len: {len(assistant_messages) if isinstance(assistant_messages, list) else 'N/A'}")
+    log_debug(f"[DEBUG] Before return - tool_calls type: {type(tool_calls)}, len: {len(tool_calls) if isinstance(tool_calls, list) else 'N/A'}")
+    log_debug(f"[DEBUG] Before return - files_modified type: {type(list(files_modified))}, len: {len(list(files_modified))}")
+    log_debug(f"[DEBUG] Before return - message_count: {len(messages)}")
+
+    result = {
         'user_messages': user_messages,
         'assistant_messages': assistant_messages,
         'tool_calls': tool_calls,
         'files_modified': list(files_modified),
         'message_count': len(messages)
     }
+    log_debug(f"[DEBUG] Returning dict with keys: {list(result.keys())}")
+    return result
 
 
 # ============================================================================
@@ -338,10 +375,58 @@ def generate_memory_with_llm(content: dict, session_info: dict) -> Optional[str]
     log_debug(f"anthropic package imported successfully, version: {getattr(anthropic, '__version__', 'unknown')}")
 
     # Prepare content for summarization (truncate to avoid token limits)
-    user_msgs = content.get('user_messages', [])[:20]  # Last 20 user messages
-    assistant_msgs = content.get('assistant_messages', [])[:20]
-    tool_calls = content.get('tool_calls', [])[:50]
-    files_modified = content.get('files_modified', [])
+    # Ensure all values are lists before slicing
+    log_debug(f"[DEBUG] Content type: {type(content)}")
+    log_debug(f"[DEBUG] Content keys: {list(content.keys()) if isinstance(content, dict) else 'Not a dict'}")
+
+    user_msgs_list = content.get('user_messages', [])
+    assistant_msgs_list = content.get('assistant_messages', [])
+    tool_calls_list = content.get('tool_calls', [])
+    files_modified_list = content.get('files_modified', [])
+
+    # Debug the types we got
+    log_debug(f"[DEBUG] user_msgs_list type: {type(user_msgs_list)}, value (first 100): {str(user_msgs_list)[:100]}")
+    log_debug(f"[DEBUG] assistant_msgs_list type: {type(assistant_msgs_list)}, value (first 100): {str(assistant_msgs_list)[:100]}")
+    log_debug(f"[DEBUG] tool_calls_list type: {type(tool_calls_list)}, value (first 100): {str(tool_calls_list)[:100]}")
+    log_debug(f"[DEBUG] files_modified_list type: {type(files_modified_list)}, value (first 100): {str(files_modified_list)[:100]}")
+
+    # Ensure they are actually lists
+    if not isinstance(user_msgs_list, list):
+        log_debug(f"[DEBUG] Converting user_msgs_list from {type(user_msgs_list)} to list")
+        user_msgs_list = []
+    if not isinstance(assistant_msgs_list, list):
+        log_debug(f"[DEBUG] Converting assistant_msgs_list from {type(assistant_msgs_list)} to list")
+        assistant_msgs_list = []
+    if not isinstance(tool_calls_list, list):
+        log_debug(f"[DEBUG] Converting tool_calls_list from {type(tool_calls_list)} to list")
+        tool_calls_list = []
+    if not isinstance(files_modified_list, list):
+        log_debug(f"[DEBUG] Converting files_modified_list from {type(files_modified_list)} to list")
+        files_modified_list = []
+
+    # Debug: Check the content of the lists before slicing
+    log_debug(f"[DEBUG] About to slice user_msgs_list (len: {len(user_msgs_list) if isinstance(user_msgs_list, list) else 'not list'})")
+    log_debug(f"[DEBUG] About to slice assistant_msgs_list (len: {len(assistant_msgs_list) if isinstance(assistant_msgs_list, list) else 'not list'})")
+    log_debug(f"[DEBUG] About to slice tool_calls_list (len: {len(tool_calls_list) if isinstance(tool_calls_list, list) else 'not list'})")
+
+    user_msgs = user_msgs_list[:20]  # Last 20 user messages
+    assistant_msgs = assistant_msgs_list[:20]
+    tool_calls = tool_calls_list[:50]
+    files_modified = files_modified_list
+
+    # Debug: Check variables before building prompt
+    log_debug(f"[DEBUG] user_msgs type: {type(user_msgs)}, len: {len(user_msgs) if isinstance(user_msgs, list) else 'not list'}")
+    log_debug(f"[DEBUG] assistant_msgs type: {type(assistant_msgs)}, len: {len(assistant_msgs) if isinstance(assistant_msgs, list) else 'not list'}")
+    log_debug(f"[DEBUG] tool_calls type: {type(tool_calls)}, len: {len(tool_calls) if isinstance(tool_calls, list) else 'not list'}")
+    log_debug(f"[DEBUG] files_modified type: {type(files_modified)}, len: {len(files_modified) if isinstance(files_modified, list) else 'not list'}")
+
+    # Check first elements of each list
+    if isinstance(user_msgs, list) and len(user_msgs) > 0:
+        log_debug(f"[DEBUG] First user_msg type: {type(user_msgs[0])}")
+    if isinstance(assistant_msgs, list) and len(assistant_msgs) > 0:
+        log_debug(f"[DEBUG] First assistant_msg type: {type(assistant_msgs[0])}")
+    if isinstance(tool_calls, list) and len(tool_calls) > 0:
+        log_debug(f"[DEBUG] First tool_call type: {type(tool_calls[0])}")
 
     # Build custom instructions section if provided
     custom_instructions = session_info.get('custom_instructions', '')
@@ -355,6 +440,7 @@ The user provided these specific instructions for this compaction:
 **Important:** Incorporate the user's custom instructions into your memory. Focus on what they've asked for.
 """
 
+    log_debug("[DEBUG] About to build prompt string...")
     prompt = f"""Analyze this Claude Code session and create a comprehensive memory for future context restoration.
 
 ## What MUST be preserved:
@@ -395,13 +481,13 @@ This session has been filtered to preserve only essential content as specified a
 - Raw tool outputs without context
 
 ## Key Messages Preserved
-{json.dumps([msg for msg in user_messages if len(msg.strip()) and '<system-reminder>' not in msg][:15], indent=2, ensure_ascii=False)[:3000]}
+{json.dumps([msg for msg in user_msgs if isinstance(msg, str) and len(str(msg).strip()) > 0 and '<system-reminder>' not in str(msg)][:15], indent=2, ensure_ascii=False)[:3000]}
 
 ## Key Assistant Responses
-{json.dumps([msg for msg in assistant_messages if len(msg.strip())][:15], indent=2, ensure_ascii=False)[:3000]}
+{json.dumps([msg for msg in assistant_msgs if isinstance(msg, str) and len(str(msg).strip()) > 0][:15], indent=2, ensure_ascii=False)[:3000]}
 
 ## Important Tool Operations
-{json.dumps([tc for tc in tool_calls if tc.get('tool') in ['Edit', 'Write', 'Read', 'Bash'] and not any(tc.get('tool') in ['NotebookEdit', 'NotebookEdit'] or tc.get('tool') == 'Read' and not tc.get('input', {}).get('file_path'))][:10], indent=2, ensure_ascii=False)[:2000]}
+{json.dumps([tc for tc in tool_calls if isinstance(tc, dict) and isinstance(tc.get('tool'), str) and tc.get('tool') in ['Edit', 'Write', 'Read', 'Bash'] and not tc.get('tool') in ['NotebookEdit', 'NotebookEdit'] and not (tc.get('tool') == 'Read' and not tc.get('input', {}).get('file_path'))][:10], indent=2, ensure_ascii=False)[:2000]}
 
 ---
 
@@ -448,6 +534,7 @@ Create a memory with these sections:
 - Relevant hashtags for categorization (e.g., #authentication #api #bugfix #refactor)
 
 Be comprehensive but concise. Focus on the essential context that would help resume this work later."""
+    log_debug("[DEBUG] Prompt string built successfully, about to call API...")
     try:
         # Build client with optional custom base URL
         api_url = get_api_url()
@@ -467,9 +554,23 @@ Be comprehensive but concise. Focus on the essential context that would help res
             max_tokens=MAX_TOKENS,
             messages=[{"role": "user", "content": prompt}]
         )
-        log_debug(f"LLM response received, content length: {len(response.content[0].text)} chars")
-        log_debug("=== generate_memory_with_llm() END (success) ===")
-        return response.content[0].text
+
+        # Safely extract text from response
+        if hasattr(response, 'content') and response.content and len(response.content) > 0:
+            content_block = response.content[0]
+            if hasattr(content_block, 'text'):
+                memory_text = content_block.text
+                log_debug(f"LLM response received, content length: {len(memory_text)} chars")
+                log_debug("=== generate_memory_with_llm() END (success) ===")
+                return memory_text
+            else:
+                log_error(f"Content block missing 'text' attribute, type: {type(content_block)}")
+        else:
+            log_error(f"Unexpected response structure: {type(response)}")
+            log_error(f"Response content: {getattr(response, 'content', 'No content attr')}")
+
+        log_debug("=== generate_memory_with_llm() END (failed to extract text) ===")
+        return None
     except Exception as e:
         log_error(f"LLM summarization failed: {e}")
         log_debug(f"Exception type: {type(e).__name__}")
@@ -482,6 +583,14 @@ def generate_memory_structured(content: dict, session_info: dict) -> str:
     files_modified = content.get('files_modified', [])
     tool_calls = content.get('tool_calls', [])
     user_messages = content.get('user_messages', [])
+
+    # Ensure they are actually lists
+    if not isinstance(files_modified, list):
+        files_modified = []
+    if not isinstance(tool_calls, list):
+        tool_calls = []
+    if not isinstance(user_messages, list):
+        user_messages = []
 
     # Extract topics from user messages (simple keyword extraction)
     topics = set()
@@ -710,7 +819,12 @@ async def call_nowledge_tools(mcp_config: dict, memory: str, metadata: dict) -> 
     Returns:
         Dict with success status for each tool
     """
-    from mcp_use.client.connectors import HttpConnector
+    # Try to import mcp-use
+    try:
+        from mcp_use.client.connectors import HttpConnector
+    except ImportError:
+        log_debug("mcp-use not available, skipping nowledge integration")
+        return {"memory": False, "thread": False}
 
     url = mcp_config.get("url")
     headers = mcp_config.get("headers", {})
@@ -723,6 +837,7 @@ async def call_nowledge_tools(mcp_config: dict, memory: str, metadata: dict) -> 
     connector = None
     try:
         # Create HttpConnector and connect
+        log_debug(f"Creating HttpConnector to {url}")
         connector = HttpConnector(base_url=url, headers=headers)
         await connector.connect()
 
@@ -731,12 +846,19 @@ async def call_nowledge_tools(mcp_config: dict, memory: str, metadata: dict) -> 
         tool_names = [t.name for t in tools]
         log_debug(f"Available tools: {tool_names}")
 
+        # Ensure we have lists for metadata
+        topics = metadata.get("topics", [])
+        if not isinstance(topics, list):
+            topics = []
+
+        files_modified = metadata.get("files_modified", [])
+        if not isinstance(files_modified, list):
+            files_modified = []
+
         # 1. Add memory with distilled insights
         if "memory_add" in tool_names:
             log_debug("Calling memory_add...")
             try:
-                topics = metadata.get("topics", [])
-                files_modified = metadata.get("files_modified", [])
                 session_id = metadata.get("session_id", "unknown")
                 project = metadata.get("cwd", "unknown")
 
@@ -775,7 +897,7 @@ Summary excerpt:
                         "client": "claude-code",
                         "project_path": metadata.get("cwd", ""),
                         "persist_mode": "current",
-                        "memory": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(metadata.get('topics', [])[:3])}"[:100]
+                        "summary": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(topics[:3])}"[:100]
                     }
                 )
                 log_debug(f"thread_persist result: {result}")
@@ -821,35 +943,6 @@ def persist_to_nowledge(memory: str, metadata: dict, content: dict) -> bool:
     # Check if mcp-use is installed
     if not _ensure_package_installed("mcp-use"):
         log_debug("mcp-use not available, skipping nowledge integration")
-        return False
-
-    try:
-        from mcp_use.client.connectors import HttpConnector
-        log_debug("mcp-use HttpConnector imported successfully")
-    except ImportError as e:
-        log_debug(f"Failed to import mcp-use HttpConnector: {e}")
-        return False
-
-    # Check server connectivity before attempting connection
-    try:
-        from urllib.parse import urlparse
-        import socket
-
-        parsed = urlparse(mcp_config["url"])
-        host = parsed.hostname or "localhost"
-        port = parsed.port or 80
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2)
-        result = sock.connect_ex((host, port))
-        sock.close()
-
-        if result != 0:
-            log_debug(f"MCP server not reachable at {host}:{port}")
-            log_debug("=== persist_to_nowledge() END (server not running) ===")
-            return False
-    except Exception as e:
-        log_debug(f"Connectivity check failed: {e}")
         return False
 
     # Run async tool calls
@@ -913,7 +1006,10 @@ def main():
         print(f"📊 [context-keeper] Found {len(messages)} messages", file=sys.stderr)
 
         # Extract content
+        log_debug("[DEBUG] Starting extract_conversation_content...")
         content = extract_conversation_content(messages)
+        log_debug(f"[DEBUG] Extracted content type: {type(content)}")
+        log_debug(f"[DEBUG] Extracted content keys: {list(content.keys()) if isinstance(content, dict) else 'Not a dict'}")
 
         # Prepare session info (include all available fields)
         session_info = {
