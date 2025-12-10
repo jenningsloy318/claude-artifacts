@@ -16,20 +16,31 @@ Environment variables:
   CLAUDE_SUMMARY_API_URL - Custom API base URL (optional, e.g., for proxy or region)
 """
 
-import sys
 import json
 import os
 import re
-import subprocess
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
+import anthropic
+from mcp_use.client.connectors import HttpConnector
+
+
+
+# ============================================================================
+# MCP Import
+# ============================================================================
 
 # ============================================================================
 # Configuration
 # ============================================================================
 
-SUMMARY_MODEL = "claude-sonnet-4-20250514"
+
+# ============================================================================
+# Configuration
+# ============================================================================
+
 MAX_TOKENS = 4000
 TIMEOUT_SECONDS = 90
 
@@ -53,77 +64,26 @@ def ensure_string(value, default=""):
 # Input/Output Helpers
 # ============================================================================
 
-def _ensure_package_installed(package_name: str) -> bool:
-    """Ensure a Python package is installed, auto-installing if needed."""
-    try:
-        __import__(package_name.replace("-", "_"))
-        return True
-    except ImportError:
-        pass
+import logging
 
-    print(f"[PreCompact] {package_name} not found, attempting auto-install...", file=sys.stderr)
+# ============================================================================
+# Logging Configuration
+# ============================================================================
 
-    # Try different pip installation methods
-    install_commands = [
-        [sys.executable, "-m", "pip", "install", "--user", package_name],
-        [sys.executable, "-m", "pip", "install", package_name],
-        ["pip3", "install", "--user", package_name],
-        ["pip3", "install", "--break-system-packages", package_name],
-    ]
+# Configure logging to write to stderr
+logging.basicConfig(
+    stream=sys.stderr,
+    level=logging.DEBUG,
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 
-    for cmd in install_commands:
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-            if result.returncode == 0:
-                # Verify import works now
-                try:
-                    __import__(package_name.replace("-", "_"))
-                    print(f"[PreCompact] ✅ Successfully installed {package_name}", file=sys.stderr)
-                    return True
-                except ImportError:
-                    continue
-        except subprocess.TimeoutExpired:
-            pass
-        except Exception:
-            pass
+# Also add stdout handler
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.DEBUG)
+stdout_handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"))
+logging.getLogger().addHandler(stdout_handler)
 
-    print(f"[PreCompact] ❌ Failed to install {package_name}", file=sys.stderr)
-    return False
-
-
-def _ensure_anthropic_installed() -> bool:
-    """Ensure the anthropic package is installed, auto-installing if needed."""
-    return _ensure_package_installed("anthropic")
-
-
-def read_hook_input() -> dict:
-    """Read JSON input from stdin."""
-    try:
-        input_data = sys.stdin.read()
-        return json.loads(input_data) if input_data.strip() else {}
-    except json.JSONDecodeError as e:
-        log_error(f"Failed to parse hook input: {e}")
-        return {}
-
-
-def log_error(message: str):
-    """Log error to stderr."""
-    print(f"[PreCompact] ❌ {message}", file=sys.stderr)
-
-
-def log_info(message: str):
-    """Log info to stdout (visible to user)."""
-    print(f"[PreCompact] {message}")
-
-
-def log_debug(message: str):
-    """Debug logging to stderr."""
-    print(f"[DEBUG] {message}", file=sys.stderr)
 
 
 # ============================================================================
@@ -136,7 +96,7 @@ def parse_transcript(transcript_path: str) -> list[dict]:
     path = Path(transcript_path).expanduser()
 
     if not path.exists():
-        log_error(f"Transcript file not found: {transcript_path}")
+        logging.error(f"Transcript file not found: {transcript_path}")
         return messages
 
     try:
@@ -146,9 +106,9 @@ def parse_transcript(transcript_path: str) -> list[dict]:
                     try:
                         messages.append(json.loads(line))
                     except json.JSONDecodeError:
-                        log_error(f"Failed to parse line {line_num} in transcript")
+                        logging.error(f"Failed to parse line {line_num} in transcript")
     except Exception as e:
-        log_error(f"Failed to read transcript: {e}")
+        logging.error(f"Failed to read transcript: {e}")
 
     return messages
 
@@ -162,7 +122,7 @@ def extract_conversation_content(messages: list[dict]) -> dict:
 
     # Ensure we have a list of messages
     if not isinstance(messages, list):
-        log_debug(f"Expected list of messages, got {type(messages)}")
+        logging.debug(f"Expected list of messages, got {type(messages)}")
         messages = []
 
     for msg in messages:
@@ -232,11 +192,11 @@ def extract_conversation_content(messages: list[dict]) -> dict:
                     files_modified.add(file_path)
 
     # Debug the values before returning
-    log_debug(f"[DEBUG] Before return - user_messages type: {type(user_messages)}, len: {len(user_messages) if isinstance(user_messages, list) else 'N/A'}")
-    log_debug(f"[DEBUG] Before return - assistant_messages type: {type(assistant_messages)}, len: {len(assistant_messages) if isinstance(assistant_messages, list) else 'N/A'}")
-    log_debug(f"[DEBUG] Before return - tool_calls type: {type(tool_calls)}, len: {len(tool_calls) if isinstance(tool_calls, list) else 'N/A'}")
-    log_debug(f"[DEBUG] Before return - files_modified type: {type(list(files_modified))}, len: {len(list(files_modified))}")
-    log_debug(f"[DEBUG] Before return - message_count: {len(messages)}")
+    logging.debug(f"[DEBUG] Before return - user_messages type: {type(user_messages)}, len: {len(user_messages) if isinstance(user_messages, list) else 'N/A'}")
+    logging.debug(f"[DEBUG] Before return - assistant_messages type: {type(assistant_messages)}, len: {len(assistant_messages) if isinstance(assistant_messages, list) else 'N/A'}")
+    logging.debug(f"[DEBUG] Before return - tool_calls type: {type(tool_calls)}, len: {len(tool_calls) if isinstance(tool_calls, list) else 'N/A'}")
+    logging.debug(f"[DEBUG] Before return - files_modified type: {type(list(files_modified))}, len: {len(list(files_modified))}")
+    logging.debug(f"[DEBUG] Before return - message_count: {len(messages)}")
 
     result = {
         'user_messages': user_messages,
@@ -245,7 +205,7 @@ def extract_conversation_content(messages: list[dict]) -> dict:
         'files_modified': list(files_modified),
         'message_count': len(messages)
     }
-    log_debug(f"[DEBUG] Returning dict with keys: {list(result.keys())}")
+    logging.debug(f"[DEBUG] Returning dict with keys: {list(result.keys())}")
     return result
 
 
@@ -253,131 +213,84 @@ def extract_conversation_content(messages: list[dict]) -> dict:
 # Summary Generation
 # ============================================================================
 
-def get_settings_env() -> dict:
-    """Load env vars from ~/.claude/settings.json as fallback."""
-    settings_path = Path.home() / ".claude" / "settings.json"
-    log_debug(f"Looking for settings.json at: {settings_path}")
+def get_claude_env() -> dict:
+    """Read env section from ~/.claude.json."""
+    config_path = Path.home() / ".claude.json"
+    logging.debug(f"Reading Claude config from: {config_path}")
 
-    if not settings_path.exists():
-        log_debug(f"settings.json NOT FOUND at {settings_path}")
+    if not config_path.exists():
+        logging.debug(f"Config file not found: {config_path}")
         return {}
 
-    log_debug(f"settings.json EXISTS at {settings_path}")
     try:
-        raw_content = settings_path.read_text(encoding='utf-8')
-        log_debug(f"settings.json content length: {len(raw_content)} chars")
-        settings = json.loads(raw_content)
-        log_debug(f"settings.json parsed successfully, keys: {list(settings.keys())}")
-
-        env_section = settings.get("env", {})
-        if env_section:
-            log_debug(f"Found 'env' section with keys: {list(env_section.keys())}")
-            # Mask sensitive values in debug output
-            for key in env_section:
-                value = env_section[key]
-                if value:
-                    masked = value[:4] + "..." + value[-4:] if len(value) > 10 else "***"
-                    log_debug(f"  env[{key}] = {masked}")
-        else:
-            log_debug("'env' section is EMPTY or NOT FOUND in settings.json")
-
-        return env_section
-    except json.JSONDecodeError as e:
-        log_error(f"Failed to parse settings.json: {e}")
-        return {}
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        env = config.get("env", {})
+        logging.debug(f"Loaded env keys: {list(env.keys())}")
+        return env
     except Exception as e:
-        log_error(f"Failed to read settings.json: {e}")
+        logging.error(f"Failed to read ~/.claude.json: {e}")
         return {}
 
 
 def get_api_key() -> Optional[str]:
-    """Get CLAUDE_SUMMARY_API_KEY from environment with fallback to settings.json."""
-    log_debug("=== get_api_key() START ===")
-
-    # First try shell environment
-    log_debug("Checking shell environment for CLAUDE_SUMMARY_API_KEY...")
-    env_key = os.environ.get("CLAUDE_SUMMARY_API_KEY")
-
-    if env_key:
-        masked = env_key[:4] + "..." + env_key[-4:] if len(env_key) > 10 else "***"
-        log_debug(f"Found CLAUDE_SUMMARY_API_KEY in shell env: {masked}")
-        log_debug("=== get_api_key() END (from shell env) ===")
-        return env_key
-
-    log_debug("CLAUDE_SUMMARY_API_KEY not found in shell environment")
-
-    # Fallback to settings.json env section
-    log_debug("Falling back to settings.json...")
-    settings_env = get_settings_env()
-
-    settings_key = settings_env.get("CLAUDE_SUMMARY_API_KEY")
-
-    if settings_key:
-        masked = settings_key[:4] + "..." + settings_key[-4:] if len(settings_key) > 10 else "***"
-        log_debug(f"Found CLAUDE_SUMMARY_API_KEY in settings.json: {masked}")
-        log_debug("=== get_api_key() END (from settings.json) ===")
-        return settings_key
-
-    log_debug("CLAUDE_SUMMARY_API_KEY not found in settings.json either")
-    log_debug("=== get_api_key() END (NO KEY FOUND) ===")
+    """Get CLAUDE_SUMMARY_API_KEY from ~/.claude.json."""
+    env = get_claude_env()
+    key = env.get("CLAUDE_SUMMARY_API_KEY")
+    
+    if key:
+        masked = key[:4] + "..." + key[-4:] if len(key) > 10 else "***"
+        logging.debug(f"Found CLAUDE_SUMMARY_API_KEY in config: {masked}")
+        return key
+    
+    logging.debug("CLAUDE_SUMMARY_API_KEY not found in config")
     return None
 
 
 def get_api_url() -> Optional[str]:
-    """Get custom API URL from environment with fallback to settings.json."""
-    log_debug("=== get_api_url() START ===")
+    """Get CLAUDE_SUMMARY_API_URL from ~/.claude.json."""
+    env = get_claude_env()
+    url = env.get("CLAUDE_SUMMARY_API_URL")
+    
+    if url:
+        logging.debug(f"Found CLAUDE_SUMMARY_API_URL in config: {url}")
+        return url
+        
+    logging.debug("CLAUDE_SUMMARY_API_URL not found in config")
+    return None
 
-    # First try shell environment
-    log_debug("Checking shell environment for API URL...")
-    env_url = os.environ.get("CLAUDE_SUMMARY_API_URL")
 
-    if env_url:
-        log_debug(f"Found CLAUDE_SUMMARY_API_URL in shell env: {env_url}")
-        log_debug("=== get_api_url() END (from shell env) ===")
-        return env_url
-    else:
-        log_debug("NO API URL found in shell environment")
-
-    # Fallback to settings.json env section
-    log_debug("Falling back to settings.json...")
-    settings_env = get_settings_env()
-
-    settings_url = settings_env.get("CLAUDE_SUMMARY_API_URL")
-    if settings_url:
-        log_debug(f"Found CLAUDE_SUMMARY_API_URL in settings.json: {settings_url}")
-        log_debug("=== get_api_url() END (from settings.json) ===")
-        return settings_url
-
-    log_debug("NO API URL found in settings.json either")
-    log_debug("=== get_api_url() END (NO URL FOUND) ===")
+def get_model_name() -> str:
+    """Get model name from ~/.claude.json or default."""
+    env = get_claude_env()
+    
+    # 1. User specified summary model
+    model = env.get("CLAUDE_SUMMARY_MODEL")
+    if model:
+        logging.debug(f"Using CLAUDE_SUMMARY_MODEL: {model}")
+        return model
+    
+    logging.debug("CLAUDE_SUMMARY_MODEL not found in config")
     return None
 
 
 def generate_memory_with_llm(content: dict, session_info: dict) -> Optional[str]:
     """Generate comprehensive memory using Claude API."""
-    log_debug("=== generate_memory_with_llm() START ===")
+    logging.debug("=== generate_memory_with_llm() START ===")
 
     api_key = get_api_key()
     if not api_key:
-        log_info("No API key found (set CLAUDE_SUMMARY_API_KEY)")
-        log_debug("=== generate_memory_with_llm() END (no API key) ===")
+        logging.info("No API key found (set CLAUDE_SUMMARY_API_KEY)")
+        logging.debug("=== generate_memory_with_llm() END (no API key) ===")
         return None
 
-    log_debug(f"API key obtained, length: {len(api_key)} chars")
-
-    # Ensure anthropic package is installed (auto-install if needed)
-    if not _ensure_anthropic_installed():
-        log_error("anthropic package not available and auto-install failed")
-        log_debug("=== generate_memory_with_llm() END (no anthropic) ===")
-        return None
-
-    import anthropic
-    log_debug(f"anthropic package imported successfully, version: {getattr(anthropic, '__version__', 'unknown')}")
+    logging.debug(f"API key obtained, length: {len(api_key)} chars")
 
     # Prepare content for summarization (truncate to avoid token limits)
     # Ensure all values are lists before slicing
-    log_debug(f"[DEBUG] Content type: {type(content)}")
-    log_debug(f"[DEBUG] Content keys: {list(content.keys()) if isinstance(content, dict) else 'Not a dict'}")
+    logging.debug(f"[DEBUG] Content type: {type(content)}")
+    logging.debug(f"[DEBUG] Content keys: {list(content.keys()) if isinstance(content, dict) else 'Not a dict'}")
 
     user_msgs_list = content.get('user_messages', [])
     assistant_msgs_list = content.get('assistant_messages', [])
@@ -385,29 +298,29 @@ def generate_memory_with_llm(content: dict, session_info: dict) -> Optional[str]
     files_modified_list = content.get('files_modified', [])
 
     # Debug the types we got
-    log_debug(f"[DEBUG] user_msgs_list type: {type(user_msgs_list)}, value (first 100): {str(user_msgs_list)[:100]}")
-    log_debug(f"[DEBUG] assistant_msgs_list type: {type(assistant_msgs_list)}, value (first 100): {str(assistant_msgs_list)[:100]}")
-    log_debug(f"[DEBUG] tool_calls_list type: {type(tool_calls_list)}, value (first 100): {str(tool_calls_list)[:100]}")
-    log_debug(f"[DEBUG] files_modified_list type: {type(files_modified_list)}, value (first 100): {str(files_modified_list)[:100]}")
+    logging.debug(f"[DEBUG] user_msgs_list type: {type(user_msgs_list)}, value (first 100): {str(user_msgs_list)[:100]}")
+    logging.debug(f"[DEBUG] assistant_msgs_list type: {type(assistant_msgs_list)}, value (first 100): {str(assistant_msgs_list)[:100]}")
+    logging.debug(f"[DEBUG] tool_calls_list type: {type(tool_calls_list)}, value (first 100): {str(tool_calls_list)[:100]}")
+    logging.debug(f"[DEBUG] files_modified_list type: {type(files_modified_list)}, value (first 100): {str(files_modified_list)[:100]}")
 
     # Ensure they are actually lists
     if not isinstance(user_msgs_list, list):
-        log_debug(f"[DEBUG] Converting user_msgs_list from {type(user_msgs_list)} to list")
+        logging.debug(f"[DEBUG] Converting user_msgs_list from {type(user_msgs_list)} to list")
         user_msgs_list = []
     if not isinstance(assistant_msgs_list, list):
-        log_debug(f"[DEBUG] Converting assistant_msgs_list from {type(assistant_msgs_list)} to list")
+        logging.debug(f"[DEBUG] Converting assistant_msgs_list from {type(assistant_msgs_list)} to list")
         assistant_msgs_list = []
     if not isinstance(tool_calls_list, list):
-        log_debug(f"[DEBUG] Converting tool_calls_list from {type(tool_calls_list)} to list")
+        logging.debug(f"[DEBUG] Converting tool_calls_list from {type(tool_calls_list)} to list")
         tool_calls_list = []
     if not isinstance(files_modified_list, list):
-        log_debug(f"[DEBUG] Converting files_modified_list from {type(files_modified_list)} to list")
+        logging.debug(f"[DEBUG] Converting files_modified_list from {type(files_modified_list)} to list")
         files_modified_list = []
 
     # Debug: Check the content of the lists before slicing
-    log_debug(f"[DEBUG] About to slice user_msgs_list (len: {len(user_msgs_list) if isinstance(user_msgs_list, list) else 'not list'})")
-    log_debug(f"[DEBUG] About to slice assistant_msgs_list (len: {len(assistant_msgs_list) if isinstance(assistant_msgs_list, list) else 'not list'})")
-    log_debug(f"[DEBUG] About to slice tool_calls_list (len: {len(tool_calls_list) if isinstance(tool_calls_list, list) else 'not list'})")
+    logging.debug(f"[DEBUG] About to slice user_msgs_list (len: {len(user_msgs_list) if isinstance(user_msgs_list, list) else 'not list'})")
+    logging.debug(f"[DEBUG] About to slice assistant_msgs_list (len: {len(assistant_msgs_list) if isinstance(assistant_msgs_list, list) else 'not list'})")
+    logging.debug(f"[DEBUG] About to slice tool_calls_list (len: {len(tool_calls_list) if isinstance(tool_calls_list, list) else 'not list'})")
 
     user_msgs = user_msgs_list[:20]  # Last 20 user messages
     assistant_msgs = assistant_msgs_list[:20]
@@ -415,18 +328,18 @@ def generate_memory_with_llm(content: dict, session_info: dict) -> Optional[str]
     files_modified = files_modified_list
 
     # Debug: Check variables before building prompt
-    log_debug(f"[DEBUG] user_msgs type: {type(user_msgs)}, len: {len(user_msgs) if isinstance(user_msgs, list) else 'not list'}")
-    log_debug(f"[DEBUG] assistant_msgs type: {type(assistant_msgs)}, len: {len(assistant_msgs) if isinstance(assistant_msgs, list) else 'not list'}")
-    log_debug(f"[DEBUG] tool_calls type: {type(tool_calls)}, len: {len(tool_calls) if isinstance(tool_calls, list) else 'not list'}")
-    log_debug(f"[DEBUG] files_modified type: {type(files_modified)}, len: {len(files_modified) if isinstance(files_modified, list) else 'not list'}")
+    logging.debug(f"[DEBUG] user_msgs type: {type(user_msgs)}, len: {len(user_msgs) if isinstance(user_msgs, list) else 'not list'}")
+    logging.debug(f"[DEBUG] assistant_msgs type: {type(assistant_msgs)}, len: {len(assistant_msgs) if isinstance(assistant_msgs, list) else 'not list'}")
+    logging.debug(f"[DEBUG] tool_calls type: {type(tool_calls)}, len: {len(tool_calls) if isinstance(tool_calls, list) else 'not list'}")
+    logging.debug(f"[DEBUG] files_modified type: {type(files_modified)}, len: {len(files_modified) if isinstance(files_modified, list) else 'not list'}")
 
     # Check first elements of each list
     if isinstance(user_msgs, list) and len(user_msgs) > 0:
-        log_debug(f"[DEBUG] First user_msg type: {type(user_msgs[0])}")
+        logging.debug(f"[DEBUG] First user_msg type: {type(user_msgs[0])}")
     if isinstance(assistant_msgs, list) and len(assistant_msgs) > 0:
-        log_debug(f"[DEBUG] First assistant_msg type: {type(assistant_msgs[0])}")
+        logging.debug(f"[DEBUG] First assistant_msg type: {type(assistant_msgs[0])}")
     if isinstance(tool_calls, list) and len(tool_calls) > 0:
-        log_debug(f"[DEBUG] First tool_call type: {type(tool_calls[0])}")
+        logging.debug(f"[DEBUG] First tool_call type: {type(tool_calls[0])}")
 
     # Build custom instructions section if provided
     custom_instructions = session_info.get('custom_instructions', '')
@@ -440,7 +353,7 @@ The user provided these specific instructions for this compaction:
 **Important:** Incorporate the user's custom instructions into your memory. Focus on what they've asked for.
 """
 
-    log_debug("[DEBUG] About to build prompt string...")
+    logging.debug("[DEBUG] About to build prompt string...")
     prompt = f"""Analyze this Claude Code session and create a comprehensive memory for future context restoration.
 
 ## What MUST be preserved:
@@ -534,23 +447,24 @@ Create a memory with these sections:
 - Relevant hashtags for categorization (e.g., #authentication #api #bugfix #refactor)
 
 Be comprehensive but concise. Focus on the essential context that would help resume this work later."""
-    log_debug("[DEBUG] Prompt string built successfully, about to call API...")
+    logging.debug("[DEBUG] Prompt string built successfully, about to call API...")
     try:
         # Build client with optional custom base URL
         api_url = get_api_url()
-        log_debug(f"API URL obtained: {api_url if api_url else 'None (using default)'}")
+        logging.debug(f"API URL obtained: {api_url if api_url else 'None (using default)'}")
 
         if api_url:
-            log_debug(f"Creating Anthropic client with custom base_url: {api_url}")
+            logging.debug(f"Creating Anthropic client with custom base_url: {api_url}")
             client = anthropic.Anthropic(api_key=api_key, base_url=api_url)
-            log_info(f"Using custom API URL: {api_url}")
+            logging.info(f"Using custom API URL: {api_url}")
         else:
-            log_debug("Creating Anthropic client with default base_url")
+            logging.debug("Creating Anthropic client with default base_url")
             client = anthropic.Anthropic(api_key=api_key)
 
-        log_debug(f"Calling LLM with model: {SUMMARY_MODEL}, max_tokens: {MAX_TOKENS}")
+        model_name = get_model_name()
+        logging.debug(f"Calling LLM with model: {model_name}, max_tokens: {MAX_TOKENS}")
         response = client.messages.create(
-            model=SUMMARY_MODEL,
+            model=model_name,
             max_tokens=MAX_TOKENS,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -560,21 +474,21 @@ Be comprehensive but concise. Focus on the essential context that would help res
             content_block = response.content[0]
             if hasattr(content_block, 'text'):
                 memory_text = content_block.text
-                log_debug(f"LLM response received, content length: {len(memory_text)} chars")
-                log_debug("=== generate_memory_with_llm() END (success) ===")
+                logging.debug(f"LLM response received, content length: {len(memory_text)} chars")
+                logging.debug("=== generate_memory_with_llm() END (success) ===")
                 return memory_text
             else:
-                log_error(f"Content block missing 'text' attribute, type: {type(content_block)}")
+                logging.error(f"Content block missing 'text' attribute, type: {type(content_block)}")
         else:
-            log_error(f"Unexpected response structure: {type(response)}")
-            log_error(f"Response content: {getattr(response, 'content', 'No content attr')}")
+            logging.error(f"Unexpected response structure: {type(response)}")
+            logging.error(f"Response content: {getattr(response, 'content', 'No content attr')}")
 
-        log_debug("=== generate_memory_with_llm() END (failed to extract text) ===")
+        logging.debug("=== generate_memory_with_llm() END (failed to extract text) ===")
         return None
     except Exception as e:
-        log_error(f"LLM summarization failed: {e}")
-        log_debug(f"Exception type: {type(e).__name__}")
-        log_debug("=== generate_memory_with_llm() END (exception) ===")
+        logging.error(f"LLM summarization failed: {e}")
+        logging.debug(f"Exception type: {type(e).__name__}")
+        logging.debug("=== generate_memory_with_llm() END (exception) ===")
         return None
 
 
@@ -652,7 +566,7 @@ def generate_memory(content: dict, session_info: dict) -> str:
         return llm_memory
 
     # Fall back to structured extraction
-    log_info("Using structured extraction (LLM unavailable)")
+    logging.info("Using structured extraction (LLM unavailable)")
     return generate_memory_structured(content, session_info)
 
 
@@ -703,7 +617,7 @@ def save_memory(
     try:
         latest_link.symlink_to(timestamp)
     except OSError as e:
-        log_error(f"Failed to create latest symlink: {e}")
+        logging.error(f"Failed to create latest symlink: {e}")
 
     # Update global index
     update_index(memories_dir, session_id, timestamp, metadata)
@@ -758,14 +672,14 @@ def extract_topics_from_memory(memory: str) -> list[str]:
 # ============================================================================
 
 # Server pattern to match in Claude Code config (lowercase)
-NOWLEDGE_SERVER_PATTERN = "nowledge"
+NOWLEDGE_SERVER_PATTERN = "nowledge-mem"
 
 
 def find_mcp_config(server_pattern: str) -> dict | None:
     """Find MCP server config from Claude Code settings.
 
-    This function follows the standard MCP HTTP Connector pattern from
-    specification/11-mcp-http-connector/template_connector.py
+    This function follows the standard MCP HTTP Connector pattern but
+    exclusively checks ~/.claude.json as per user configuration.
 
     Args:
         server_pattern: Lowercase pattern to match server name
@@ -773,34 +687,40 @@ def find_mcp_config(server_pattern: str) -> dict | None:
     Returns:
         Dict with name, url, headers if found, None otherwise
     """
-    config_paths = [
-        Path.home() / ".claude.json",
-        Path.home() / ".claude" / "settings.json",
-        Path.home() / ".claude" / "settings.local.json",
-        Path.cwd() / ".claude" / "settings.json",
-        Path.cwd() / ".claude" / "settings.local.json",
-    ]
+    # Only check the main configuration file
+    config_path = Path.home() / ".claude.json"
+    
+    logging.debug(f"Checking for MCP config in: {config_path}")
 
-    for path in config_paths:
-        if path.exists():
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
+    if config_path.exists():
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
 
-                mcp_servers = config.get("mcpServers", {})
+            mcp_servers = config.get("mcpServers", {})
+            logging.debug(f"Found mcpServers: {list(mcp_servers.keys())}")
 
-                for name, server_config in mcp_servers.items():
-                    if server_pattern in name.lower():
-                        # Accept http or streamableHttp types for HTTP-based servers
-                        server_type = server_config.get("type", "")
-                        if server_type in ("http", "streamableHttp"):
-                            return {
-                                "name": name,
-                                "url": server_config.get("url"),
-                                "headers": server_config.get("headers", {})
-                            }
-            except (json.JSONDecodeError, IOError):
-                continue
+            for name, server_config in mcp_servers.items():
+                # Check if pattern matches
+                if server_pattern in name.lower():
+                    logging.debug(f"Found matching server: {name}")
+                    
+                    # Accept http or streamableHttp types for HTTP-based servers
+                    # Also accept missing type if url is present (common in some configs)
+                    server_type = server_config.get("type", "unknown")
+                    url = server_config.get("url")
+                    
+                    if url and (server_type in ("http", "streamableHttp") or server_type == "unknown"):
+                        return {
+                            "name": name,
+                            "url": url,
+                            "headers": server_config.get("headers", {})
+                        }
+                    else:
+                        logging.debug(f"Server {name} skipped: type={server_type}, has_url={bool(url)}")
+                        
+        except (json.JSONDecodeError, IOError) as e:
+            logging.error(f"Failed to read config: {e}")
 
     return None
 
@@ -819,32 +739,30 @@ async def call_nowledge_tools(mcp_config: dict, memory: str, metadata: dict) -> 
     Returns:
         Dict with success status for each tool
     """
-    # Try to import mcp-use
-    try:
-        from mcp_use.client.connectors import HttpConnector
-    except ImportError:
-        log_debug("mcp-use not available, skipping nowledge integration")
-        return {"memory": False, "thread": False}
-
+    
+    # Check if mcp-use is available (handled by top-level import now, 
+    # capturing ImportWarning/Error if module missing might be done at module level or here if we want to be safe)
+    # But user requested top level import.
+    
     url = mcp_config.get("url")
     headers = mcp_config.get("headers", {})
-    results = {"memory": False, "thread": False}
+    results = {"memory": False}
 
     if not url:
-        log_debug("MCP server URL not found in config")
+        logging.debug("MCP server URL not found in config")
         return results
 
     connector = None
     try:
         # Create HttpConnector and connect
-        log_debug(f"Creating HttpConnector to {url}")
+        logging.debug(f"Creating HttpConnector to {url}")
         connector = HttpConnector(base_url=url, headers=headers)
         await connector.connect()
 
         # List available tools (useful for debugging)
         tools = await connector.list_tools()
         tool_names = [t.name for t in tools]
-        log_debug(f"Available tools: {tool_names}")
+        logging.debug(f"Available tools: {tool_names}")
 
         # Ensure we have lists for metadata
         topics = metadata.get("topics", [])
@@ -857,7 +775,7 @@ async def call_nowledge_tools(mcp_config: dict, memory: str, metadata: dict) -> 
 
         # 1. Add memory with distilled insights
         if "memory_add" in tool_names:
-            log_debug("Calling memory_add...")
+            logging.debug("Calling memory_add...")
             try:
                 session_id = metadata.get("session_id", "unknown")
                 project = metadata.get("cwd", "unknown")
@@ -868,8 +786,8 @@ Key topics: {', '.join(topics[:5]) if topics else 'None'}
 Files modified: {len(files_modified)}
 Message count: {metadata.get('message_count', 0)}
 
-Summary excerpt:
-{memory[:1500]}"""
+Full Session Memory:
+{memory}"""
 
                 result = await connector.call_tool(
                     name="memory_add",
@@ -877,39 +795,21 @@ Summary excerpt:
                         "content": memory_content,
                         "title": f"Claude Code Session: {', '.join(topics[:3]) if topics else session_id[:8]}",
                         "importance": 0.7,
-                        "labels": ",".join(["claude-code", "session-memory"] + topics[:3]),
-                        "source": "context-keeper-precompact"
+                        "labels": ",".join(["claude-code", "session-memory"] + topics[:3])
                     }
                 )
-                log_debug(f"memory_add result: {result}")
+                logging.debug(f"memory_add result: {result}")
                 results["memory"] = True
-                log_info("Memory persisted to nowledge")
+                logging.info("Memory persisted to nowledge")
             except Exception as e:
-                log_debug(f"memory_add failed: {e}")
+                logging.debug(f"memory_add failed: {e}")
 
-        # 2. Persist full thread
-        if "thread_persist" in tool_names:
-            log_debug("Calling thread_persist...")
-            try:
-                result = await connector.call_tool(
-                    name="thread_persist",
-                    arguments={
-                        "client": "claude-code",
-                        "project_path": metadata.get("cwd", ""),
-                        "persist_mode": "current",
-                        "summary": f"Session {metadata.get('session_id', 'unknown')[:8]}: {', '.join(topics[:3])}"[:100]
-                    }
-                )
-                log_debug(f"thread_persist result: {result}")
-                results["thread"] = True
-                log_info("Thread persisted to nowledge")
-            except Exception as e:
-                log_debug(f"thread_persist failed: {e}")
+        # Note: Thread persistence is handled by save_thread.py at session end
 
         return results
 
     except Exception as e:
-        log_debug(f"HttpConnector error: {e}")
+        logging.debug(f"HttpConnector error: {e}")
         return results
     finally:
         if connector:
@@ -929,34 +829,28 @@ def persist_to_nowledge(memory: str, metadata: dict, content: dict) -> bool:
     Returns True if successful, False otherwise.
     Non-blocking - failures don't affect local memory storage.
     """
-    log_debug("=== persist_to_nowledge() START ===")
+    logging.debug("=== persist_to_nowledge() START ===")
 
     # Find server config using standard pattern
     mcp_config = find_mcp_config(NOWLEDGE_SERVER_PATTERN)
     if not mcp_config:
-        log_debug(f"HTTP MCP server matching '{NOWLEDGE_SERVER_PATTERN}' not found in Claude Code settings")
-        log_debug("=== persist_to_nowledge() END (no config) ===")
+        logging.debug(f"HTTP MCP server matching '{NOWLEDGE_SERVER_PATTERN}' not found in Claude Code settings")
+        logging.debug("=== persist_to_nowledge() END (no config) ===")
         return False
 
-    log_debug(f"Found config: {mcp_config['name']} at {mcp_config['url']}")
-
-    # Check if mcp-use is installed
-    if not _ensure_package_installed("mcp-use"):
-        log_debug("mcp-use not available, skipping nowledge integration")
-        return False
-
+    logging.debug(f"Found config: {mcp_config['name']} at {mcp_config['url']}")
     # Run async tool calls
     try:
         import asyncio
-        log_debug("Calling nowledge tools...")
+        logging.debug("Calling nowledge tools...")
         results = asyncio.run(call_nowledge_tools(mcp_config, memory, metadata))
-        success = results.get("memory", False) or results.get("thread", False)
-        log_debug(f"=== persist_to_nowledge() END (success={success}) ===")
+        success = results.get("memory", False)
+        logging.debug(f"=== persist_to_nowledge() END (success={success}) ===")
         return success
 
     except Exception as e:
-        log_debug(f"persist_to_nowledge error: {e}")
-        log_debug("=== persist_to_nowledge() END (exception) ===")
+        logging.debug(f"persist_to_nowledge error: {e}")
+        logging.debug("=== persist_to_nowledge() END (exception) ===")
         return False
 
 
@@ -972,11 +866,18 @@ def main():
 
     try:
         # Read input from Claude Code
-        hook_input = read_hook_input()
-
-        if not hook_input:
-            log_error("No input received")
+        raw_input = sys.stdin.read()
+        
+        if not raw_input.strip():
+            logging.error("No input received (stdin is empty)")
             print("=" * 60 + "\n", file=sys.stderr)
+            sys.exit(1)
+            
+        try:
+            hook_input = json.loads(raw_input)
+        except json.JSONDecodeError as e:
+            logging.error(f"Invalid JSON input: {e}")
+            logging.debug(f"Raw input snippet: {raw_input[:200]}")
             sys.exit(1)
 
         # Extract session information (all available fields)
@@ -992,7 +893,7 @@ def main():
 
         # Parse transcript
         if not transcript_path:
-            log_error("No transcript path provided")
+            logging.error("No transcript path provided")
             print("=" * 60 + "\n", file=sys.stderr)
             sys.exit(1)
 
@@ -1006,10 +907,10 @@ def main():
         print(f"📊 [context-keeper] Found {len(messages)} messages", file=sys.stderr)
 
         # Extract content
-        log_debug("[DEBUG] Starting extract_conversation_content...")
+        logging.debug("[DEBUG] Starting extract_conversation_content...")
         content = extract_conversation_content(messages)
-        log_debug(f"[DEBUG] Extracted content type: {type(content)}")
-        log_debug(f"[DEBUG] Extracted content keys: {list(content.keys()) if isinstance(content, dict) else 'Not a dict'}")
+        logging.debug(f"[DEBUG] Extracted content type: {type(content)}")
+        logging.debug(f"[DEBUG] Extracted content keys: {list(content.keys()) if isinstance(content, dict) else 'Not a dict'}")
 
         # Prepare session info (include all available fields)
         session_info = {
@@ -1042,10 +943,10 @@ def main():
         # Save to project directory
         print("💾 [context-keeper] Saving memory...", file=sys.stderr)
         memory_path = save_memory(session_id, memory, metadata, cwd)
-
-        log_info(f"Summary saved: {memory_path}")
-        log_info(f"Files modified: {len(metadata['files_modified'])}")
-        log_info(f"Topics: {', '.join(metadata['topics'][:5]) if metadata['topics'] else 'none extracted'}")
+        
+        logging.info(f"Summary saved: {memory_path}")
+        logging.info(f"Files modified: {len(metadata['files_modified'])}")
+        logging.info(f"Topics: {', '.join(metadata['topics'][:5]) if metadata['topics'] else 'none extracted'}")
 
         # Persist to nowledge (non-blocking, optional)
         try:
@@ -1061,7 +962,7 @@ def main():
         sys.exit(0)
 
     except Exception as e:
-        log_error(f"Unexpected error: {e}")
+        logging.error(f"Unexpected error: {e}")
         print("=" * 60 + "\n", file=sys.stderr)
         sys.exit(1)
 
