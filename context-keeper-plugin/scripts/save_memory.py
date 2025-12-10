@@ -14,6 +14,7 @@ Exit codes:
 Environment variables:
   CLAUDE_SUMMARY_API_KEY - Dedicated API key for Claude summarization (required for LLM memory)
   CLAUDE_SUMMARY_API_URL - Custom API base URL (optional, e.g., for proxy or region)
+  CLAUDE_SUMMARY_MODEL - model used to summerize the memeory
 """
 
 import json
@@ -70,20 +71,17 @@ import logging
 # Logging Configuration
 # ============================================================================
 
-# Configure logging to write to stderr
+# Configure logging
 logging.basicConfig(
-    stream=sys.stderr,
     level=logging.DEBUG,
-    format="[%(asctime)s] %(levelname)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    format='[%(asctime)s] %(levelname)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+    #    logging.FileHandler('/tmp/context-keeper-debug.log'),
+        logging.StreamHandler(sys.stdout),
+        logging.StreamHandler(sys.stderr)
+    ]
 )
-
-# Also add stdout handler
-stdout_handler = logging.StreamHandler(sys.stdout)
-stdout_handler.setLevel(logging.DEBUG)
-stdout_handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"))
-logging.getLogger().addHandler(stdout_handler)
-
 
 
 # ============================================================================
@@ -125,6 +123,9 @@ def extract_conversation_content(messages: list[dict]) -> dict:
         logging.debug(f"Expected list of messages, got {type(messages)}")
         messages = []
 
+    start_time = None
+    end_time = None
+
     for msg in messages:
         # Skip invalid messages
         if not isinstance(msg, dict):
@@ -136,6 +137,14 @@ def extract_conversation_content(messages: list[dict]) -> dict:
         nested_msg = msg.get('message', {})
         if not isinstance(nested_msg, dict):
             nested_msg = {}
+
+        # Attempt to extract timestamp
+        ts = msg.get('created_at') or msg.get('timestamp') or nested_msg.get('created_at') or nested_msg.get('timestamp')
+        if ts:
+            if start_time is None or ts < start_time:
+                start_time = ts
+            if end_time is None or ts > end_time:
+                end_time = ts
 
         role = nested_msg.get('role', '')
         content = nested_msg.get('content', '') if isinstance(nested_msg, dict) else msg.get('content', '')
@@ -176,7 +185,12 @@ def extract_conversation_content(messages: list[dict]) -> dict:
                             if tool_name in ['Edit', 'Write', 'MultiEdit', 'NotebookEdit']:
                                 file_path = tool_input.get('file_path', tool_input.get('notebook_path', ''))
                                 if file_path:
-                                    files_modified.add(file_path)
+                                    try:
+                                        rel_path = os.path.relpath(file_path, os.getcwd())
+                                        files_modified.add(rel_path)
+                                    except ValueError:
+                                        # Fallback if path is on different drive or invalid
+                                        files_modified.add(file_path)
 
         # Handle tool_use messages directly (older format)
         elif msg_type == 'tool_use':
@@ -189,7 +203,11 @@ def extract_conversation_content(messages: list[dict]) -> dict:
             if tool_name in ['Edit', 'Write', 'MultiEdit', 'NotebookEdit']:
                 file_path = tool_input.get('file_path', tool_input.get('notebook_path', ''))
                 if file_path:
-                    files_modified.add(file_path)
+                    try:
+                        rel_path = os.path.relpath(file_path, os.getcwd())
+                        files_modified.add(rel_path)
+                    except ValueError:
+                        files_modified.add(file_path)
 
     # Debug the values before returning
     logging.debug(f"[DEBUG] Before return - user_messages type: {type(user_messages)}, len: {len(user_messages) if isinstance(user_messages, list) else 'N/A'}")
@@ -198,12 +216,18 @@ def extract_conversation_content(messages: list[dict]) -> dict:
     logging.debug(f"[DEBUG] Before return - files_modified type: {type(list(files_modified))}, len: {len(list(files_modified))}")
     logging.debug(f"[DEBUG] Before return - message_count: {len(messages)}")
 
+    logging.debug(f"Extracted {len(user_messages)} user msgs, {len(assistant_messages)} assistant msgs")
+    logging.debug(f"Found {len(tool_calls)} tool calls, {len(files_modified)} modified files")
+    logging.debug(f"Session timeline: {start_time} to {end_time}")
+
     result = {
-        'user_messages': user_messages,
-        'assistant_messages': assistant_messages,
-        'tool_calls': tool_calls,
-        'files_modified': list(files_modified),
-        'message_count': len(messages)
+        "user_messages": user_messages,
+        "assistant_messages": assistant_messages,
+        "tool_calls": tool_calls,
+        "files_modified": list(files_modified),
+        "message_count": len(user_messages) + len(assistant_messages),
+        "start_time": start_time,
+        "end_time": end_time
     }
     logging.debug(f"[DEBUG] Returning dict with keys: {list(result.keys())}")
     return result
@@ -311,108 +335,120 @@ def generate_memory_with_llm(content: dict, session_info: dict) -> Optional[str]
     custom_section = ""
     if custom_instructions:
         custom_section = f"""
-## User's Custom Instructions
-The user provided these specific instructions for this compaction:
-{custom_instructions}
+        ## User's Custom Instructions
+        The user provided these specific instructions for this compaction:
+        {custom_instructions}
 
-**Important:** Incorporate the user's custom instructions into your memory. Focus on what they've asked for.
-"""
+        **Important:** Incorporate the user's custom instructions into your memory. Focus on what they've asked for.
+        """
 
     logging.debug("[DEBUG] About to build prompt string...")
     prompt = f"""Analyze this Claude Code session and create a comprehensive memory for future context restoration.
 
-## What MUST be preserved:
-- Key architecture changes (system design, structural modifications, refactoring decisions)
-- Key UI/UX changes (component updates, interface modifications, user experience improvements)
-- Key specification changes (requirements changes, business rules, validation logic updates)
-- Multiple rounds of conversation that clarify issues and requirements
-- Indirect or direct logs that show errors (error messages, stack traces, failure information)
+    ## What MUST be preserved:
+    - Key architecture changes (system design, structural modifications, refactoring decisions)
+    - Key UI/UX changes (component updates, interface modifications, user experience improvements)
+    - Key specification changes (requirements changes, business rules, validation logic updates)
+    - Multiple rounds of conversation that clarify issues and requirements
+    - Indirect or direct logs that show errors (error messages, stack traces, failure information)
 
-## What should be refined/summarized:
-- Repetitive conversations that converge on a solution
-- Long error traces refined to show only key error indicators
-- Multiple similar questions condensed into single entries
+    ## What should be refined/summarized:
+    - Repetitive conversations that converge on a solution
+    - Long error traces refined to show only key error indicators
+    - Multiple similar questions condensed into single entries
 
-## What should be avoided:
-- Plenty of unrelated logs posted by user (random logs, test outputs)
-- LLM thinking process and internal reasoning
-- Meaningless acknowledgments ("I understand", "Got it", "Thanks", etc.)
-- Raw tool outputs without meaningful context
-- Duplicate or very similar messages
+    ## What should be avoided:
+    - Plenty of unrelated logs posted by user (random logs, test outputs)
+    - LLM thinking process and internal reasoning
+    - Meaningless acknowledgments ("I understand", "Got it", "Thanks", etc.)
+    - Raw tool outputs without meaningful context
+    - Duplicate or very similar messages
 
-## Session Information
-- Session ID: {session_info.get('session_id', 'unknown')}
-- Project: {session_info.get('cwd', 'unknown')}
-- Trigger: {session_info.get('trigger', 'unknown')}
-- Permission Mode: {session_info.get('permission_mode', 'default')}
-- Hook Event: {session_info.get('hook_event_name', 'PreCompact')}
-- Timestamp: {session_info.get('timestamp', 'unknown')}
-- Total Messages: {content.get('message_count', 0)}
-{custom_section}
+    ## Session Information
+    - Session ID: {session_info.get('session_id', 'unknown')}
+    - Project: {session_info.get('cwd', 'unknown')}
+    - Trigger: {session_info.get('trigger', 'unknown')}
+    - Permission Mode: {session_info.get('permission_mode', 'default')}
+    - Hook Event: {session_info.get('hook_event_name', 'PreCompact')}
+    - Timestamp: {session_info.get('timestamp', 'unknown')}
+    - Total Messages: {content.get('message_count', 0)}
+    {custom_section}
 
-## Filtered Content
-This session has been filtered to preserve only essential content as specified above. The following were excluded:
-- Unrelated logs and system outputs
-- LLM internal thinking processes
-- Filler acknowledgments and pleasantries
-- Repetitive minor interactions
-- Raw tool outputs without context
+    ## Filtered Content
+    This session has been filtered to preserve only essential content as specified above. The following were excluded:
+    - Unrelated logs and system outputs
+    - LLM internal thinking processes
+    - Filler acknowledgments and pleasantries
+    - Repetitive minor interactions
+    - Raw tool outputs without context
 
-## Key Messages Preserved
-{json.dumps([msg for msg in user_msgs if isinstance(msg, str) and len(str(msg).strip()) > 0 and '<system-reminder>' not in str(msg)][:15], indent=2, ensure_ascii=False)[:3000]}
+    ## Key Messages Preserved
+    {json.dumps([msg for msg in user_msgs if isinstance(msg, str) and len(str(msg).strip()) > 0 and '<system-reminder>' not in str(msg)][:15], indent=2, ensure_ascii=False)[:3000]}
 
-## Key Assistant Responses
-{json.dumps([msg for msg in assistant_msgs if isinstance(msg, str) and len(str(msg).strip()) > 0][:15], indent=2, ensure_ascii=False)[:3000]}
+    ## Key Assistant Responses
+    {json.dumps([msg for msg in assistant_msgs if isinstance(msg, str) and len(str(msg).strip()) > 0][:15], indent=2, ensure_ascii=False)[:3000]}
 
-## Important Tool Operations
-{json.dumps([tc for tc in tool_calls if isinstance(tc, dict) and isinstance(tc.get('tool'), str) and tc.get('tool') in ['Edit', 'Write', 'Read', 'Bash'] and not tc.get('tool') in ['NotebookEdit', 'NotebookEdit'] and not (tc.get('tool') == 'Read' and not tc.get('input', {}).get('file_path'))][:10], indent=2, ensure_ascii=False)[:2000]}
+    ---
 
----
+    Create a memory with these sections:
 
-Create a memory with these sections:
+    ## Topics Discussed
+    - List main themes and subjects covered
 
-## Topics Discussed
-- List main themes and subjects covered
+    ## Architecture Changes
+    - Files modified with brief descriptions of changes
+    - Key design patterns and decisions
 
-## Architecture Changes
-- Files modified with brief descriptions of changes
-- Key design patterns and decisions
+    ## UI/UX Changes
+    - Interface updates and component modifications
+    - User flow improvements
+    - Design system updates
 
-## UI/UX Changes
-- Interface updates and component modifications
-- User flow improvements
-- Design system updates
+    ## Specification Changes
+    - Requirements and business rules updates
+    - Validation logic changes
+    - API contract modifications
 
-## Specification Changes
-- Requirements and business rules updates
-- Validation logic changes
-- API contract modifications
+    ## Code Changes
+    - Files modified with brief descriptions
+    - Key snippets or patterns implemented
 
-## Code Changes
-- Files modified with brief descriptions
-- Key snippets or patterns implemented
+    ## Decisions Made
+    - Important decisions with rationale
+    - Trade-offs considered
+    - Architecture choices
 
-## Decisions Made
-- Important decisions with rationale
-- Trade-offs considered
-- Architecture choices
+    ## Key Outcomes
+    - What was accomplished
+    - Problems solved
+    - Features implemented
 
-## Key Outcomes
-- What was accomplished
-- Problems solved
-- Features implemented
+    ## Context for Continuation
+    - Important context needed to continue this work
+    - Current state of implementation
+    - Next steps if mentioned
+    - Next steps if mentioned
+    - File changes that were made (use relative paths to the Project directory)
 
-## Context for Continuation
-- Important context needed to continue this work
-- Current state of implementation
-- Next steps if mentioned
-- File changes that were made
+    ## Tags
+    - Relevant hashtags for categorization (e.g., #authentication #api #bugfix #refactor)
 
-## Tags
-- Relevant hashtags for categorization (e.g., #authentication #api #bugfix #refactor)
+    Be comprehensive but concise. Focus on the essential context that would help resume this work later.
 
-Be comprehensive but concise. Focus on the essential context that would help resume this work later."""
+    IMPORTANT: You must return a VALID JSON object with exactly two fields:
+    1. "nowledge_summary": A detailed and comprehensive summary for retrieval (MAXIMUM 1750 characters). 
+    - Focus on: High-level purpose, Key decisions, Critical outcomes, and Next steps.
+    - Foucus most recent content if it will reach the limit
+    - Do NOT list modified files (this is added automatically).
+    - FILL the available space (aim for ~1700 chars). Be dense and informative.
+    - Purpose: To provide a rich context summary.
+    2. "full_memory": The detailed markdown report following the structure above (Topics, Architecture, etc.).
+
+    Return ONLY the raw JSON object. Do not wrap in markdown code blocks."""  # This closes the prompt string
+    # nowledge-mem memory_add has content Lengthlength <= 1792 limit
+
     logging.debug("[DEBUG] Prompt string built successfully, about to call API...")
+
     try:
         # Get configuration
         api_key, api_url, model_name = get_summary_config()
@@ -445,13 +481,39 @@ Be comprehensive but concise. Focus on the essential context that would help res
         )
 
         # Safely extract text from response
+        # Safely extract text from response
         if hasattr(response, 'content') and response.content and len(response.content) > 0:
             content_block = response.content[0]
             if hasattr(content_block, 'text'):
-                memory_text = content_block.text
-                logging.debug(f"LLM response received, content length: {len(memory_text)} chars")
-                logging.debug("=== generate_memory_with_llm() END (success) ===")
-                return memory_text
+                response_text = content_block.text
+                logging.debug(f"LLM response received, content length: {len(response_text)} chars")
+                
+                # Try to parse as JSON
+                try:
+                    # Clean potential markdown wrapping
+                    if "```json" in response_text:
+                        response_text = response_text.split("```json")[1].split("```")[0].strip()
+                    elif "```" in response_text:
+                        response_text = response_text.split("```")[1].split("```")[0].strip()
+                        
+                    data = json.loads(response_text)
+                    logging.debug("Successfully parsed JSON response")
+                    logging.debug(f"Keys found: {list(data.keys())}")
+                    
+                    # Validate keys
+                    if "full_memory" in data and "nowledge_summary" in data:
+                        logging.debug("=== generate_memory_with_llm() END (success) ===")
+                        return data
+                    else:
+                        logging.warning("Missing required keys in JSON response, falling back to raw text if possible")
+                        # Fallback: if structure is wrong but we have text, try to use it?
+                        # No, strict structure required now.
+                        return None
+
+                except json.JSONDecodeError as e:
+                    logging.error(f"Failed to parse JSON response: {e}")
+                    logging.debug(f"Raw response: {response_text[:500]}...")
+                    return None
             else:
                 logging.error(f"Content block missing 'text' attribute, type: {type(content_block)}")
         else:
@@ -483,17 +545,12 @@ def generate_memory_structured(content: dict, session_info: dict) -> str:
         user_messages = []
 
     # Extract topics from user messages (simple keyword extraction)
+    # Extract topics from user messages (simple keyword extraction)
     topics = set()
     for msg in user_messages[:20]:
         # Extract words that look like topics
         words = re.findall(r'\b[a-zA-Z]{4,}\b', msg.lower())
         topics.update(words[:5])
-
-    # Count tool usage
-    tool_counts = {}
-    for tc in tool_calls:
-        tool = tc.get('tool', 'unknown')
-        tool_counts[tool] = tool_counts.get(tool, 0) + 1
 
     # Include custom instructions if provided
     custom_instructions = session_info.get('custom_instructions', '')
@@ -506,35 +563,35 @@ def generate_memory_structured(content: dict, session_info: dict) -> str:
 
     memory = f"""# Session Summary (Structured Extraction)
 
-## Metadata
-- **Session ID:** {session_info.get('session_id', 'unknown')}
-- **Project:** {session_info.get('cwd', 'unknown')}
-- **Trigger:** {session_info.get('trigger', 'unknown')}
-- **Permission Mode:** {session_info.get('permission_mode', 'default')}
-- **Hook Event:** {session_info.get('hook_event_name', 'PreCompact')}
-- **Timestamp:** {session_info.get('timestamp', 'unknown')}
-- **Total Messages:** {content.get('message_count', 0)}
-{custom_section}
+        ## Metadata
+        - **Session ID:** {session_info.get('session_id', 'unknown')}
+        - **Project:** {session_info.get('cwd', 'unknown')}
+        - **Trigger:** {session_info.get('trigger', 'unknown')}
+        - **Permission Mode:** {session_info.get('permission_mode', 'default')}
+        - **Hook Event:** {session_info.get('hook_event_name', 'PreCompact')}
+        - **Timestamp:** {session_info.get('timestamp', 'unknown')}
+        - **Total Messages:** {content.get('message_count', 0)}
+        {custom_section}
 
-## Files Modified
-{chr(10).join(f'- `{f}`' for f in files_modified) if files_modified else '- None tracked'}
+        ## Topics Detected
+        {', '.join(list(topics)[:15]) if topics else 'None extracted'}
 
-## Tool Usage
-{chr(10).join(f'- {tool}: {count} calls' for tool, count in sorted(tool_counts.items(), key=lambda x: -x[1])[:10]) if tool_counts else '- None tracked'}
+        ## Files Modified
+        {chr(10).join(f'- `{f}`' for f in files_modified) if files_modified else '- None tracked'}
 
-## Sample User Requests
-{chr(10).join(f'- {msg[:200]}...' if len(msg) > 200 else f'- {msg}' for msg in user_messages[:5]) if user_messages else '- None captured'}
+        ## Sample User Requests
+        {chr(10).join(f'- {msg[:200]}...' if len(msg) > 200 else f'- {msg}' for msg in user_messages[:5]) if user_messages else '- None captured'}
 
-## Keywords
-{', '.join(list(topics)[:15]) if topics else 'None extracted'}
+        ## Keywords
+        {', '.join(list(topics)[:15]) if topics else 'None extracted'}
 
----
-*Note: This is a structured extraction. LLM-based memory unavailable (no API key or error).*
-"""
+        ---
+        *Note: This is a structured extraction. LLM-based memory unavailable (no API key or error).*
+        """
     return memory
 
 
-def generate_memory(content: dict, session_info: dict) -> str:
+def generate_memory(content: dict, session_info: dict) -> dict | str:
     """Generate memory with LLM, falling back to structured extraction."""
     # Try LLM first
     llm_memory = generate_memory_with_llm(content, session_info)
@@ -557,11 +614,18 @@ def get_memories_dir(project_path: str) -> Path:
 
 def save_memory(
     session_id: str,
-    memory: str,
+    memory: dict | str,
     metadata: dict,
     project_path: str
 ) -> Path:
     """Save memory and metadata to file system with timestamp versioning."""
+    
+    # Extract actual memory content for file storage
+    if isinstance(memory, dict):
+        full_memory = memory.get("full_memory", "")
+    else:
+        full_memory = memory
+
     memories_dir = get_memories_dir(project_path)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -571,7 +635,7 @@ def save_memory(
 
     # Save memory as JSON
     memory_data = {
-        "content": memory,
+        "content": full_memory,
         "timestamp": timestamp,
         "session_id": session_id
     }
@@ -635,10 +699,15 @@ def update_index(memories_dir: Path, session_id: str, timestamp: str, metadata: 
     index_path.write_text(json.dumps(index, indent=2, ensure_ascii=False), encoding='utf-8')
 
 
-def extract_topics_from_memory(memory: str) -> list[str]:
+def extract_topics_from_memory(memory: dict | str) -> list[str]:
     """Extract topic tags from memory."""
-    # Look for hashtags
-    hashtags = re.findall(r'#(\w+)', memory)
+    # Look for hashtags in full content
+    if isinstance(memory, dict):
+        text_content = memory.get("full_memory", "")
+    else:
+        text_content = memory
+        
+    hashtags = re.findall(r'#(\w+)', text_content)
     return list(set(hashtags))[:10]
 
 
@@ -756,27 +825,37 @@ async def call_nowledge_tools(mcp_config: dict, memory: str, metadata: dict) -> 
                 session_id = metadata.get("session_id", "unknown")
                 project = metadata.get("cwd", "unknown")
 
-                memory_content = f"""Session {session_id[:8]} - {project}
-
-Key topics: {', '.join(topics[:5]) if topics else 'None'}
-Files modified: {len(files_modified)}
-Message count: {metadata.get('message_count', 0)}
-
-Full Session Memory:
-{memory}"""
-
+                # The memory passed here is now the specific summary for Nowledge
+                memory_content = memory
+                
+                # Extract project basename for label
+                project_name = os.path.basename(project) if project != "unknown" else "unknown-project"
+                
                 result = await connector.call_tool(
                     name="memory_add",
                     arguments={
                         "content": memory_content,
-                        "title": f"Claude Code Session: {', '.join(topics[:3]) if topics else session_id[:8]}",
+                        "title": f"Session {session_id}: {', '.join(topics[:3]) if topics else 'Update'}",
                         "importance": 0.7,
-                        "labels": ",".join(["claude-code", "session-memory"] + topics[:3])
+                        "labels": ",".join(filter(None, ["claude-context", "session-summary", project_name] + (topics[:5]))),
+                        "event_start": metadata.get("event_start"),
+                        "event_end": metadata.get("event_end")
                     }
                 )
                 logging.debug(f"memory_add result: {result}")
-                results["memory"] = True
-                logging.info("Memory persisted to nowledge")
+                
+                # Check for tool errors
+                if hasattr(result, 'isError') and result.isError:
+                     error_msg = "Unknown tool error"
+                     if hasattr(result, 'content') and result.content:
+                         error_msg = str(result.content)
+                     logging.error(f"memory_add tool returned error: {error_msg}")
+                     print(f"❌ [context-keeper] Nowledge Error: {error_msg}", file=sys.stderr)
+                     results["memory"] = False
+                else:
+                    results["memory"] = True
+                    logging.info("Memory persisted to nowledge")
+
             except Exception as e:
                 logging.error(f"memory_add failed: {e}")
                 print(f"❌ [context-keeper] Failed to save to Nowledge: {e}", file=sys.stderr)
@@ -797,7 +876,8 @@ Full Session Memory:
                 pass
 
 
-def persist_to_nowledge(memory: str, metadata: dict, content: dict) -> bool:
+
+def persist_to_nowledge(memory: dict | str, metadata: dict, content: dict) -> bool:
     """
     Persist memory and thread to nowledge MCP server using HttpConnector.
 
@@ -808,6 +888,16 @@ def persist_to_nowledge(memory: str, metadata: dict, content: dict) -> bool:
     Non-blocking - failures don't affect local memory storage.
     """
     logging.debug("=== persist_to_nowledge() START ===")
+
+    # Determine content to send
+    if isinstance(memory, dict):
+        memory_content_to_send = memory.get("nowledge_summary", "")
+        if not memory_content_to_send:
+            full = memory.get("full_memory", "")
+            logging.warning("No 'nowledge_summary' found in memory dict, falling back to truncated full memory")
+            memory_content_to_send = full
+    else:
+        memory_content_to_send = memory
 
     # Find server config using standard pattern
     mcp_config = find_mcp_config(NOWLEDGE_SERVER_PATTERN)
@@ -821,7 +911,8 @@ def persist_to_nowledge(memory: str, metadata: dict, content: dict) -> bool:
     try:
         import asyncio
         logging.debug("Calling nowledge tools...")
-        results = asyncio.run(call_nowledge_tools(mcp_config, memory, metadata))
+        # Note: We pass the specific summary string here, not the full dict
+        results = asyncio.run(call_nowledge_tools(mcp_config, memory_content_to_send, metadata))
         success = results.get("memory", False)
         logging.debug(f"=== persist_to_nowledge() END (success={success}) ===")
         return success
@@ -903,7 +994,9 @@ def main():
             "topics": extract_topics_from_memory(memory),
             "files_modified": content.get("files_modified", []),
             "message_count": content.get("message_count", 0),
-            "tool_call_count": len(content.get("tool_calls", []))
+            "tool_call_count": len(content.get("tool_calls", [])),
+            "event_start": content.get("start_time"),
+            "event_end": content.get("end_time")
         }
 
         # Save to project directory
