@@ -111,13 +111,19 @@ def parse_transcript(transcript_path: str) -> list[dict]:
     return messages
 
 
-def extract_conversation_content(messages: list[dict]) -> dict:
-    """Extract relevant content from transcript messages."""
+def extract_conversation_content(messages: list[dict], start_cutoff: Optional[str] = None) -> dict:
+    """
+    Extract user and assistant messages, identifying tools and modified files.
+    
+    Args:
+        messages: List of message dictionaries
+        start_cutoff: Optional timestamp (ISO string). If provided, only messages created AFTER this time are included.
+    """
     user_messages = []
     assistant_messages = []
     tool_calls = []
     files_modified = set()
-
+    
     # Ensure we have a list of messages
     if not isinstance(messages, list):
         logging.debug(f"Expected list of messages, got {type(messages)}")
@@ -137,9 +143,14 @@ def extract_conversation_content(messages: list[dict]) -> dict:
         nested_msg = msg.get('message', {})
         if not isinstance(nested_msg, dict):
             nested_msg = {}
-
+            
         # Attempt to extract timestamp
         ts = msg.get('created_at') or msg.get('timestamp') or nested_msg.get('created_at') or nested_msg.get('timestamp')
+        
+        # Filter by start_cutoff if provided
+        if start_cutoff and ts and ts <= start_cutoff:
+            continue
+
         if ts:
             if start_time is None or ts < start_time:
                 start_time = ts
@@ -221,6 +232,7 @@ def extract_conversation_content(messages: list[dict]) -> dict:
     logging.debug(f"Session timeline: {start_time} to {end_time}")
 
     result = {
+        "text": "\n\n".join(user_messages + assistant_messages),
         "user_messages": user_messages,
         "assistant_messages": assistant_messages,
         "tool_calls": tool_calls,
@@ -604,8 +616,62 @@ def generate_memory(content: dict, session_info: dict) -> dict | str:
 
 
 # ============================================================================
-# File Storage
+# File Storage helpers
 # ============================================================================
+
+def get_last_compact_time(session_id: str, project_path: str = None, transcript_path: str = None) -> Optional[str]:
+    """
+    Get the timestamp (event_end) of the last compaction for this session.
+    
+    Strategy:
+    1. Scan the transcript file for 'compact_boundary' events (most reliable).
+    2. Fallback to local metadata.json if transcript scan fails.
+    """
+    # 1. Try scanning transcript_path if provided
+    if transcript_path and os.path.exists(transcript_path):
+        try:
+            found_timestamps = []
+            with open(transcript_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    # Check for system compact event
+                    if '"subtype":"compact_boundary"' in line or '"subtype": "compact_boundary"' in line:
+                         try:
+                             data = json.loads(line)
+                             if data.get("timestamp"):
+                                 found_timestamps.append(data.get("timestamp"))
+                         except json.JSONDecodeError:
+                             pass
+                    # Check for stdout marker (fallback)
+                    elif "Compacted" in line and "<local-command-stdout>" in line:
+                        try:
+                             data = json.loads(line)
+                             if data.get("timestamp"):
+                                 found_timestamps.append(data.get("timestamp"))
+                        except json.JSONDecodeError:
+                             pass
+            
+            if found_timestamps:
+                # Sort timestamps to ensure we get the absolute latest, 
+                # strictly following user requirement to sort and pick latest.
+                found_timestamps.sort(reverse=True)
+                return found_timestamps[0]
+                
+        except Exception as e:
+            logging.warning(f"Failed to scan transcript for compaction time: {e}")
+
+    # 2. Try local metadata first (fastest)
+    try:
+        memories_dir = get_memories_dir(project_path)
+        latest_meta_path = memories_dir / session_id / "latest" / "metadata.json"
+        
+        if latest_meta_path.exists():
+            meta = json.loads(latest_meta_path.read_text(encoding='utf-8'))
+            # Prefer event_end (actual message time), fallback to timestamp (creation time)
+            return meta.get("event_end") or meta.get("timestamp")
+    except Exception as e:
+        logging.warning(f"Failed to read last compaction time locally: {e}")
+        
+    return None
 
 def get_memories_dir(project_path: str) -> Path:
     """Get the memories directory for the project."""
@@ -963,9 +1029,14 @@ def main():
 
         print(f"📊 [context-keeper] Found {len(messages)} messages", file=sys.stderr)
 
+        # Get last compaction time (incremental update)
+        last_compact_time = get_last_compact_time(session_id, cwd, transcript_path)
+        if last_compact_time:
+            print(f"🔄 [context-keeper] Incremental summary starting from {last_compact_time}", file=sys.stderr)
+        
         # Extract content
         logging.debug("[DEBUG] Starting extract_conversation_content...")
-        content = extract_conversation_content(messages)
+        content = extract_conversation_content(messages, start_cutoff=last_compact_time)
         logging.debug(f"[DEBUG] Extracted content type: {type(content)}")
         logging.debug(f"[DEBUG] Extracted content keys: {list(content.keys()) if isinstance(content, dict) else 'Not a dict'}")
 
