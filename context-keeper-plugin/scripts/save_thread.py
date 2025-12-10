@@ -104,104 +104,6 @@ def find_mcp_config(server_pattern: str) -> dict | None:
 
     return None
 
-def get_memories_dir(project_path: str) -> Path:
-    """
-    Get the directory where memories are stored.
-    Tries project-local defaults first, acts as a fallback or standard getter.
-    """
-    # 1. Try local .claude/memories in the project
-    if project_path:
-         local_memories = Path(project_path) / ".claude" / "memories"
-         if local_memories.exists():
-             return local_memories
-             
-    # 2. Try global ~/.claude/memories (standard location)
-    global_memories = Path.home() / ".claude" / "memories"
-    return global_memories
-
-def get_last_compact_time(session_id: str, project_path: str = None, transcript_path: str = None) -> str | None:
-    """
-    Get the timestamp (event_end) of the last compaction for this session.
-    
-    Strategy:
-    1. Scan the transcript file for 'compact_boundary' events (most reliable).
-    2. Fallback to local metadata.json if transcript scan fails.
-    """
-    # 1. Try scanning transcript_path if provided
-    if transcript_path and os.path.exists(transcript_path):
-        try:
-            found_timestamps = []
-            with open(transcript_path, 'r', encoding='utf-8') as f:
-                for line in f:
-                    # Check for system compact event
-                    if '"subtype":"compact_boundary"' in line or '"subtype": "compact_boundary"' in line:
-                         try:
-                             data = json.loads(line)
-                             if data.get("timestamp"):
-                                 found_timestamps.append(data.get("timestamp"))
-                         except json.JSONDecodeError:
-                             pass
-                    # Check for stdout marker (fallback)
-                    elif "Compacted" in line and "<local-command-stdout>" in line:
-                        try:
-                             data = json.loads(line)
-                             if data.get("timestamp"):
-                                 found_timestamps.append(data.get("timestamp"))
-                        except json.JSONDecodeError:
-                             pass
-            
-            if found_timestamps:
-                found_timestamps.sort(reverse=True)
-                return found_timestamps[0]
-                
-        except Exception as e:
-            logging.warning(f"Failed to scan transcript for compaction time: {e}")
-
-    # 2. Try local metadata first (fastest)
-    try:
-        memories_dir = get_memories_dir(project_path)
-        latest_meta_path = memories_dir / session_id / "latest" / "metadata.json"
-        
-        if latest_meta_path.exists():
-            meta = json.loads(latest_meta_path.read_text(encoding='utf-8'))
-            return meta.get("event_end") or meta.get("timestamp")
-    except Exception as e:
-        logging.warning(f"Failed to read last compaction time locally: {e}")
-        
-    return None
-
-def get_transcript_times(transcript_path: str) -> tuple[str | None, str | None]:
-    """
-    Scan transcript for the first and last message timestamps.
-    Returns (start_time, end_time).
-    """
-    start_time = None
-    end_time = None
-    
-    if not transcript_path or not os.path.exists(transcript_path):
-        return None, None
-
-    try:
-        with open(transcript_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                try:
-                    data = json.loads(line)
-                    ts = data.get("created_at") or data.get("timestamp")
-                    # Check nested message
-                    if not ts and "message" in data and isinstance(data["message"], dict):
-                        ts = data["message"].get("created_at") or data["message"].get("timestamp")
-                        
-                    if ts:
-                        if start_time is None or ts < start_time:
-                            start_time = ts
-                        if end_time is None or ts > end_time:
-                            end_time = ts
-                except json.JSONDecodeError:
-                    continue
-    except Exception as e:
-        logging.warning(f"Failed to scan transcript times: {e}")
-
-    return start_time, end_time
 async def persist_thread_to_nowledge(session_id: str, project_path: str, summary: str, persist_mode: str = "current") -> bool:
     """Persist thread to nowledge using thread_persist MCP tool.
 
@@ -219,11 +121,11 @@ async def persist_thread_to_nowledge(session_id: str, project_path: str, summary
     mcp_config = find_mcp_config(NOWLEDGE_SERVER_PATTERN)
 
     if not mcp_config:
-        print(f"❌ [save-thread] Nowledge MCP server not found in Claude settings", file=sys.stderr)
+        logging.error("[save-thread] Nowledge MCP server not found in Claude settings")
         return False
 
-    print(f"📡 [save-thread] Connecting to nowledge MCP server: {mcp_config['name']}", file=sys.stderr)
-    print(f"   URL: {mcp_config['url']}", file=sys.stderr)
+    logging.info(f"[save-thread] Connecting to nowledge MCP server: {mcp_config['name']}")
+    logging.info(f"   URL: {mcp_config['url']}")
 
     connector = None
     try:
@@ -234,15 +136,15 @@ async def persist_thread_to_nowledge(session_id: str, project_path: str, summary
         # List available tools
         tools = await connector.list_tools()
         tool_names = [t.name for t in tools]
-        print(f"🔧 [save-thread] Available tools: {tool_names}", file=sys.stderr)
+        logging.info(f"[save-thread] Available tools: {tool_names}")
 
         # Check if thread_persist is available
         if "thread_persist" not in tool_names:
-            print(f"❌ [save-thread] thread_persist tool not found", file=sys.stderr)
+            logging.error("[save-thread] thread_persist tool not found")
             return False
 
         # Call thread_persist tool
-        print(f"💾 [save-thread] Calling thread_persist for session {session_id[:8]}...", file=sys.stderr)
+        logging.info(f"[save-thread] Calling thread_persist for session {session_id[:8]}...")
 
         arguments = {
             "client": "claude-code",
@@ -261,29 +163,29 @@ async def persist_thread_to_nowledge(session_id: str, project_path: str, summary
 
         # Check result
         if hasattr(result, 'isError') and result.isError:
-            print(f"❌ [save-thread] thread_persist failed: {result.content}", file=sys.stderr)
+            logging.error(f"[save-thread] thread_persist failed: {result.content}")
             return False
 
         if result.content:
             content_text = result.content[0].text if hasattr(result.content[0], 'text') else str(result.content[0])
-            print(f"✅ [save-thread] Thread persisted successfully!", file=sys.stderr)
-            print(f"   Result: {content_text[:200]}...", file=sys.stderr)
+            logging.info("[save-thread] Thread persisted successfully!")
+            logging.info(f"   Result: {content_text[:200]}...")
             return True
 
-        print(f"✅ [save-thread] Thread persisted successfully!", file=sys.stderr)
+        logging.info("[save-thread] Thread persisted successfully!")
         return True
 
     except Exception as e:
-        print(f"❌ [save-thread] Error persisting thread: {e}", file=sys.stderr)
+        logging.error(f"[save-thread] Error persisting thread: {e}")
         import traceback
-        traceback.print_exc()
+        logging.error(traceback.format_exc())
         return False
 
     finally:
         if connector:
             try:
                 await connector.disconnect()
-                print("🔌 [save-thread] Disconnected from nowledge MCP server", file=sys.stderr)
+                logging.info("[save-thread] Disconnected from nowledge MCP server")
             except:
                 pass
 
@@ -292,32 +194,39 @@ def main():
     """Main execution function."""
     # Configure logging to stderr
     logging.basicConfig(
-        stream=sys.stderr,
         level=logging.DEBUG,
-        format="[%(asctime)s] %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        format='[%(asctime)s] %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+        #    logging.FileHandler('/tmp/context-keeper-thread-persist.log'),
+            logging.StreamHandler(sys.stdout),
+            logging.StreamHandler(sys.stderr)
+        ]
     )
-    
-    # Also add stdout handler
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.DEBUG)
-    stdout_handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"))
-    logging.getLogger().addHandler(stdout_handler)
-    
-    print("\n" + "=" * 60, file=sys.stderr)
-    print("🔄 [save-thread] SessionEnd Hook Running...", file=sys.stderr)
-    print("=" * 60, file=sys.stderr)
+        
+    logging.info("\n" + "=" * 60)
+    logging.info("[save-thread] SessionEnd Hook Running...")
+    logging.info("=" * 60)
 
     try:
         # 1. Try to read from stdin (Hook mode)
-        hook_input = json.loads(sys.stdin.read())
+        try:
+             # Check if stdin has data
+             if not sys.stdin.isatty():
+                 stdin_content = sys.stdin.read()
+                 hook_input = json.loads(stdin_content) if stdin_content else {}
+             else:
+                 hook_input = {}
+        except Exception:
+             hook_input = {}
+
         # 2. Parse args (CLI mode overrides)
         args = parse_arguments()
 
         # 3. Resolve final values (Args > Stdin)
         session_id = args.session_id or hook_input.get("session_id")
         project_path = args.project_path or hook_input.get("cwd")
-        transcript_path = hook_input.get("transcript_path")
+        # transcript_path = hook_input.get("transcript_path") # Not used anymore
         
         # Validation
         if not session_id or not project_path:
@@ -329,27 +238,13 @@ def main():
         summary = args.summary 
         persist_mode = args.persist_mode
 
-        # Incremental Logic: Enhance summary with time range
-        try:
-            start_time = get_last_compact_time(session_id, project_path, transcript_path)
-            _, end_time = get_transcript_times(transcript_path) # We only care about end_time of current session
-            
-            if start_time and end_time:
-                time_info = f" [Incremental Session: {start_time} to {end_time}]"
-                summary = (summary or "") + time_info
-                print(f"🔄 [save-thread] Identified incremental range: {start_time} -> {end_time}", file=sys.stderr)
-            elif end_time:
-                # First run or no compaction found
-                time_info = f" [Session End: {end_time}]"
-                summary = (summary or "") + time_info
-        except Exception as e:
-            logging.warning(f"Failed to calculate incremental times: {e}")
+        # Processing session (No incremental logic anymore)
+        logging.info(f"[save-thread] Processing session {session_id[:8]}...")
+        logging.info(f"[save-thread] Project: {project_path}")
 
-        print(f"📋 [save-thread] Processing session {session_id[:8]}...", file=sys.stderr)
-        print(f"📁 [save-thread] Project: {project_path}", file=sys.stderr)
 
         # Persist thread to nowledge
-        print("☁️  [save-thread] Connecting to nowledge...", file=sys.stderr)
+        logging.info("[save-thread] Connecting to nowledge...")
 
         import asyncio
         success = asyncio.run(persist_thread_to_nowledge(
@@ -360,19 +255,19 @@ def main():
         ))
 
         if success:
-            print("✅ [save-thread] Session thread persisted successfully!", file=sys.stderr)
-            print("=" * 60 + "\n", file=sys.stderr)
+            logging.info("[save-thread] Session thread persisted successfully!")
+            logging.info("=" * 60 + "\n")
             sys.exit(0)
         else:
-            print("❌ [save-thread] Failed to persist thread to nowledge", file=sys.stderr)
-            print("=" * 60 + "\n", file=sys.stderr)
+            logging.error("[save-thread] Failed to persist thread to nowledge")
+            logging.info("=" * 60 + "\n")
             sys.exit(1)
 
     except Exception as e:
-        print(f"❌ [save-thread] Unexpected error: {e}", file=sys.stderr)
+        logging.error(f"[save-thread] Unexpected error: {e}")
         import traceback
-        traceback.print_exc()
-        print("=" * 60 + "\n", file=sys.stderr)
+        logging.error(traceback.format_exc())
+        logging.info("=" * 60 + "\n")
         sys.exit(1)
 
 
