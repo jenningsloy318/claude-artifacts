@@ -17,7 +17,7 @@ Load a previous memory to restore conversation state from before compaction.
 **YOU MUST run this command using Bash tool - DO NOT use Read tool to read index.json directly:**
 
 ```bash
-python3 context-keeper-plugin/scripts/load_memory.py $ARGUMENTS
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/load_memory.py $ARGUMENTS
 ```
 
 This script uses `jq` for efficient JSON extraction. Running the script is REQUIRED - do not read files manually.

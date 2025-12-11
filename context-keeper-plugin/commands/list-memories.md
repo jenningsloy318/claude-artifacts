@@ -17,7 +17,7 @@ Display saved memories from the context-keeper plugin.
 **YOU MUST run this command using Bash tool - DO NOT use Read tool to read index.json directly:**
 
 ```bash
-python3 context-keeper-plugin/scripts/list_memories.py $ARGUMENTS
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/list_memories.py $ARGUMENTS
 ```
 
 This script uses `jq` for efficient JSON extraction. Running the script is REQUIRED - do not read files manually.
