@@ -42,7 +42,6 @@ These rules define how to translate Figma inputs into code for this project and 
 ### New Requirements Process (MUST follow)
 1. **Do not rush into coding during initial communication**: When the user proposes a new requirement, first conduct a solution discussion.
 2. **Use ASCII diagrams**: When necessary, create comparative ASCII diagrams for multiple solution options to enable the user to select the optimal approach.
-3. **Develop only after user approval**: Begin implementation only once the user has explicitly confirmed the chosen solution.
 
 ### Implementation Process (MUST follow)
 1. Understand existing patterns: study three analogous features/components in the codebase.
