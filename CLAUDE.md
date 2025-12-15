@@ -38,6 +38,7 @@ These rules define how to translate Figma inputs into code for this project and 
 - Manage cyclomatic complexity; maximize code reuse.
 - Emphasize modular design; use design patterns where appropriate.
 - Minimize changes; avoid modifying unrelated module code.
+- Occam's Razor (do not add code unless necessary)
 
 ### New Requirements Process (MUST follow)
 1. **Do not rush into coding during initial communication**: When the user proposes a new requirement, first conduct a solution discussion.
@@ -48,7 +49,11 @@ These rules define how to translate Figma inputs into code for this project and 
 2. Identify common patterns: determine project conventions and recurring patterns.
 3. Adhere to existing standards: use the same libraries/tools and follow the established testing patterns.
 4. Implement in phases: decompose complex work into 3–5 stages.
-
+5. No reinventing the wheel: extensively reuse open-source components, and use AI to write the "glue code" that binds them together.
+6. Modularity: develop like assembling building blocks—define interfaces first, implement afterward.
+8. for api implementation, always use version api endpoints like `/api/v1/xxx`
+9. In Next.js, do not use deprecated or global middleware for request proxying. Prefer implementing a proxy via Route Handlers (e.g., /app/api/proxy/route.ts) or a dedicated proxy.ts/js helper, and use next.config.js rewrites/redirects when appropriate.
+10. If the project includes both frontend and backend, split them into two directories (e.g., /frontend and /backend) and maintain separate build/test pipelines for each.
 ### Quality Standards (MUST follow)
 - Each commit must compile successfully
 - Pass all existing tests

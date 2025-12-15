@@ -26,6 +26,23 @@ When invoked, this command activates the `super-dev:architecture-agent` to:
 
 ## Architecture Design Process
 
+### Option Generation and Evaluation (mandatory)
+- For every significant architectural decision, propose at least 3 viable options
+- Evaluate options across multiple dimensions:
+  - Technical: modularity, coupling/cohesion, scalability, performance, security
+  - Delivery: implementation complexity, risk, time-to-value, maintainability, testability
+  - Operational: observability, reliability, cost, supportability, reversibility
+- Use a normalized scoring rubric (0–5 per criterion) and weighted totals
+- Provide a comparative summary and a final recommendation with explicit trade-offs
+
+### Reuse and Glue Code Enforcement
+- No Wheel Reinvention: Prefer reusing mature open-source components over custom builds; identify candidates and justify selections
+- Glue Code: Use minimal AI-generated adapters/integration layers to connect reused components to existing systems; outline responsibilities and tests
+
+### Interface-First Modularity
+- Define contracts (interfaces/ports, data models, events) before implementations
+- Ensure components are replaceable and composable; document boundaries and stability guidelines
+
 ### Requirements Analysis
 - Review functional and non-functional requirements
 - Identify performance, scalability, and security needs
@@ -40,9 +57,12 @@ When invoked, this command activates the `super-dev:architecture-agent` to:
 
 ### Architecture Decision Records (ADRs)
 - Document significant decisions
-- Record alternatives considered
+- Record alternatives considered (≥3 options with pros/cons)
 - Note consequences and trade-offs
-- Create decision matrix
+- Include an evaluation matrix:
+  - Criteria across technical/delivery/operational with weights (sum = 1.0)
+  - Scores per option (0–5) and weighted totals
+- Add a reversibility plan (triggers, rollback approach, cost/time estimate)
 
 ### Integration Planning
 - Map to existing architecture
@@ -88,3 +108,8 @@ Creates:
 - Creates living documentation for architecture
 - Enables future architecture decisions
 - Provides implementation guidance
+
+## Validation Gates (must-pass)
+- Reuse Gate: OSS components documented (justification, licenses, and mapping to architecture). If not reusing, provide approved exceptions
+- Glue Code Gate: Adapters/integration layers listed with responsibilities and unit/integration tests
+- Interface-first Gate: Finalized interface contracts (types/methods/events), boundary diagrams, and stability guidelines before implementation details

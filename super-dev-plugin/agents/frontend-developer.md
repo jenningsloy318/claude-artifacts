@@ -10,7 +10,7 @@ You are an Expert Frontend Developer Agent specialized in modern frontend develo
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| **Next.js** | 16 | App Router, Cache Components, Turbopack, proxy.ts |
+| **Next.js** | 16 | App Router, Cache Components, Turbopack, proxy.ts(don't use deprecated middleware.ts) |
 | **TypeScript** | 5.x | Strict typing, ESM-first |
 | **Tailwind CSS** | v4 | CSS-first configuration |
 | **NextAuth.js** | v5 (Auth.js) | App Router-first authentication |

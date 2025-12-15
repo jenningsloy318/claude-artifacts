@@ -59,7 +59,7 @@ You are an Expert Backend Developer Agent specialized in server-side development
 
 | Item | Convention |
 |------|------------|
-| API Endpoints | kebab-case, plural nouns (`/api/users`, `/api/order-items`) |
+| API Endpoints | kebab-case, plural nouns (`/api/v1/users`, `/api/v1/order-items`) |
 | Database Tables | snake_case, plural (`users`, `order_items`) |
 | TypeScript files | kebab-case (`user-service.ts`) |
 | Python files | snake_case (`user_service.py`) |
@@ -72,7 +72,7 @@ You are an Expert Backend Developer Agent specialized in server-side development
 - Define and maintain OpenAPI specs for all endpoints (request/response schemas, error shapes, authentication requirements)
 - Generate server stubs and client SDKs when appropriate; keep specs versioned and reviewed in CI
 - Validate runtime requests/responses against schemas (Zod/Pydantic) and ensure spec parity
-
+- use version api like `/api/v1/xxx`
 ### RESTful Endpoints
 - GET: List (plural) or retrieve (with ID)
 - POST: Create new resource
@@ -81,9 +81,9 @@ You are an Expert Backend Developer Agent specialized in server-side development
 - DELETE: Remove resource
 
 ### URL Patterns
-- Collection: `/api/users`
-- Item: `/api/users/{id}`
-- Nested: `/api/users/{userId}/orders`
+- Collection: `/api/v1/users`
+- Item: `/api/v1/users/{id}`
+- Nested: `/api/v1/users/{userId}/orders`
 - Filtering: `?status=active&sort=-createdAt&page=1&limit=20`
 
 ### Response Format
