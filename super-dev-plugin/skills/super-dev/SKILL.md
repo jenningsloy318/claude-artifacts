@@ -74,7 +74,7 @@ Two indices are used throughout this workflow to organize specifications and the
 
 - Spec Index (spec-index): A numeric sequence that identifies each specification within the `specification/` directory. Naming convention: `[spec-index]-[spec-name]/`. Example: `01-user-auth/`, `02-payment-processing/`.
 
-- doc Index (doc-index): A numeric sequence used to order and label files produced within a specific spec across workflow phases. These files are stored under the corresponding spec directory and use the doc index in their filenames. Naming convention: `[doc-index]-[document-type].md`. Example within `01-research-report.md`: `02-requirements.md`, `03-specification.md`.
+- doc Index (doc-index): A auto-incrementalnumeric sequence used to order and label files produced within a specific spec across workflow phases, not same with the phase index. These files are stored under the corresponding spec directory and use the doc index in their filenames. Naming convention: `[doc-index]-[document-type].md`. Example within `01-research-report.md`: `02-requirements.md`, `03-specification.md`.
 
 Summary:
 - Spec Index organizes specs at the directory level (which spec).

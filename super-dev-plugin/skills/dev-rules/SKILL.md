@@ -218,6 +218,7 @@ Before moving to next task/phase:
 - Watch cyclomatic complexity - maximize code reuse
 - Focus on modular design - use design patterns where appropriate
 - Minimize changes - avoid modifying code in other modules
+- Versioned API with a clear, predictable hierarchy. Align API routes with the source code/package structure
 
 ### New Requirements Process
 1. **Don't rush to code**: When user proposes new requirements, discuss the solution first
