@@ -210,6 +210,7 @@ Before moving to next task/phase:
 ## Development Philosophy
 
 ### Core Principles
+- **First Principles Analysis**: For complex features and bug fixes, break down to fundamental truths and build up from there
 - **Incremental Development**: Small commits, each must compile and pass tests
 - **Learn from Existing Code**: Research and plan before implementing
 - **Pragmatic over Dogmatic**: Adapt to project's actual situation
