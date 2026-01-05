@@ -396,7 +396,31 @@ Coordinator reviews all documents for alignment and completeness.
 - `super-dev:qa-agent` - Modality-specific testing and verification (merged planning + execution)
 - **CodeRabbit CLI (Background)** - Proactive code review starting immediately when dev begins implementation
 
-**CodeRabbit Proactive Execution:**
+### Code Quality Standards (MANDATORY - Enforced During Implementation)
+
+**The dev-executor MUST adhere to these standards during Phase 8:**
+
+#### Naming Convention Requirements (MANDATORY)
+- [ ] **No generic variable names** - All variables use feature-specific prefixes
+  - Prohibited: `data`, `item`, `value`, `result`, `temp`, `obj`, `val`
+  - Required: `[feature][entity][property]` (e.g., `userAuthState`, `orderTotal`)
+- [ ] **No single-letter names** - Except loop indices (i, j, k)
+- [ ] **No abbreviations** - Except well-known ones (id, url, api, http)
+- [ ] **Function names use verb-noun pattern** - `[feature][Action]` or `[verb][Noun]`
+- [ ] **Constants use UPPER_CASE** - `[FEATURE_NAME]_[CONSTANT]`
+- [ ] **Booleans use is/has/should prefix** - `isAuthenticated`, `hasPermission`
+
+#### No Ambiguity Requirements (MANDATORY)
+- [ ] **Follow spec exactly** - Implementation must match specification unambiguously
+- [ ] **Use specified names** - No deviation from spec-defined variable/function names
+- [ ] **No generic names in code** - Even if spec allows, use descriptive names
+- [ ] **Explicit error handling** - No "handle errors", specify exact error handling
+- [ ] **No optional behaviors** - Everything is explicit or explicitly conditional
+
+**CodeRabbit will flag violations of these standards.**
+
+### CodeRabbit Proactive Execution
+
 - Starts: As soon as dev agent signals implementation begins
 - Mode: Background process with `--prompt-only` flag
 - Purpose: Find issues early during implementation, not after completion
