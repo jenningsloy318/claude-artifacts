@@ -317,9 +317,52 @@ The code-assessor:
 
 ---
 
-## Phase 7: Specification Review
+## Phase 7: Specification Review (VALIDATION GATES)
 
 Coordinator reviews all documents for alignment and completeness.
+
+**CRITICAL VALIDATION GATES - Spec Review MUST verify:**
+
+### Naming Convention Requirements (MANDATORY)
+- [ ] **No generic variable names** - All variables use feature-specific prefixes
+  - Prohibited: `data`, `item`, `value`, `result`, `temp`, `obj`, `val`
+  - Required: `[feature][entity][property]` (e.g., `userAuthState`, `orderTotal`)
+- [ ] **No single-letter names** - Except loop indices (i, j, k)
+- [ ] **No abbreviations** - Except well-known ones (id, url, api, http)
+- [ ] **Function names use verb-noun pattern** - `[feature][Action]` or `[verb][Noun]`
+- [ ] **Constants use UPPER_CASE** - `[FEATURE_NAME]_[CONSTANT]`
+- [ ] **Booleans use is/has/should prefix** - `isAuthenticated`, `hasPermission`
+
+### No Ambiguity Requirements (MANDATORY)
+- [ ] **Single Implementation Guarantee** - Spec must result in exactly ONE valid implementation
+- [ ] **All function names are specified** - No room for interpretation
+- [ ] **All parameter names are specified** - No generic names allowed
+- [ ] **All file paths are specified** - No ambiguity about where code goes
+- [ ] **All conditional behaviors are documented** - No "if needed, do X"
+- [ ] **All error cases are listed** - No "handle errors appropriately"
+- [ ] **No pronouns** - Replace "it", "they", "this" with specific nouns
+- [ ] **No "etc." or "and so on"** - List everything explicitly
+- [ ] **No "appropriate" or "suitable"** - Specify exact values
+- [ ] **No "handle" or "process"** - Specify exact actions
+- [ ] **No optional behaviors** - Everything is required or explicitly conditional
+
+### File Inventory Requirements (MANDATORY)
+- [ ] **Files to be Created** - Complete list with specific file names
+- [ ] **Files to be Modified** - Complete list with specific changes required
+- [ ] **Files to be Deleted** - Complete list with reasons
+- [ ] **File Summary** - Total counts for created/modified/deleted
+- [ ] **Each milestone includes Files Affected section** - Created/Modified/Deleted
+
+**REJECT SPEC IF ANY GATE FAILS** - Return to spec-writer for corrections
+
+### Additional Review Criteria
+- [ ] Requirements addressed in specification
+- [ ] Research findings incorporated
+- [ ] Architecture decisions documented (if applicable)
+- [ ] Design specifications included (if UI feature)
+- [ ] Implementation plan is feasible
+- [ ] Task list is complete and actionable
+- [ ] All acceptance criteria are testable
 
 ---
 
