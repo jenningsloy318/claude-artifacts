@@ -109,6 +109,84 @@ When searching the local codebase for code patterns, structures, or specific con
 - Don't use `git add -A` - use `git add file1 file2` (only files you edited/created/deleted)
 - Before committing, **ALWAYS** generate proper commit messages
 
+## Git Worktree Requirement (CRITICAL - MANDATORY)
+
+**ALL development work MUST be done in a git worktree. This is NOT optional.**
+
+### Check Current Environment
+
+**Before ANY development work, ALWAYS check:**
+
+```bash
+# Check if we're in a worktree
+git worktree list
+
+# Check current git directory
+git rev-parse --git-common-dir
+
+# Check if .git is a file (indicating worktree)
+test -f .git && echo "In worktree" || test -d .git && echo "In main repo"
+```
+
+### Worktree Verification
+
+**You are in a worktree if:**
+- `.git` is a **file** (not a directory) containing `gitdir: path/to/main/.git`
+- `git worktree list` shows the current path as a worktree
+- The directory structure follows pattern: `../.zcf/[project-name]/worktrees/[branch-name]/`
+
+**You are NOT in a worktree if:**
+- `.git` is a **directory** (main repository, not isolated)
+- `git worktree list` does NOT show the current path
+- Working directly in the main project repository
+
+### MANDATORY User Confirmation
+
+**If NOT in a worktree, you MUST:**
+
+1. **STOP immediately** - Do not make any changes
+2. **Ask user for confirmation:**
+   ```
+   WARNING: You are not in a git worktree. Current location appears to be the main repository.
+
+   Working directly in the main repository risks:
+   - Mixing work with other development
+   - Accidentally committing incomplete changes
+   - Difficult to isolate and test changes
+   - Harder to discard experimental work
+
+   Options:
+   1. Create a new worktree for this work (recommended)
+   2. Proceed in main repository (user must explicitly confirm)
+
+   Please confirm your choice:
+   - Type "create worktree" to create an isolated worktree
+   - Type "proceed in main" to explicitly continue in main repository
+   ```
+
+3. **WAIT for explicit user confirmation** before proceeding
+4. **Only continue after user types one of:**
+   - `create worktree` - Create a new worktree
+   - `proceed in main` - User explicitly confirms to work in main
+
+### Worktree Creation (User Chooses This)
+
+When user confirms to create a worktree:
+
+```bash
+# Create worktree using the skill
+# This will be handled by zcf:git-worktree skill
+```
+
+### Exceptions
+
+**You MAY proceed without worktree ONLY if:**
+- User explicitly types `proceed in main` after seeing the warning above
+- The task is trivial (e.g., viewing a file, not making changes)
+- User has already confirmed work in main repository in this session
+
+**These are the ONLY exceptions. All other cases require worktree.**
+
 ## Git Safety & Checkpoint Rules (CRITICAL)
 
 ### Frequent Checkpoints (MANDATORY)
