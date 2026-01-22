@@ -9,6 +9,61 @@ A coordinator-driven development system with parallel agent execution for all de
 
 **Announce at start:** "I'm using the super-dev skill to systematically implement this task with coordinator-driven orchestration."
 
+## Integrated Ecosystem
+
+This skill is enhanced with complementary tools from the everything-claude-code collection:
+
+| Component | Purpose | When Used |
+|-----------|---------|-----------|
+| **Skills** | | |
+| `tdd-workflow` | Test-driven development methodology | Phase 8 (Implementation) |
+| `security-review` | Security checklist and validation | Phase 9 (Code Review) |
+| `continuous-learning` | Auto-extract patterns from sessions | Session end |
+| `strategic-compact` | Manual compaction suggestions | Large contexts |
+| `backend-patterns` | API, database, caching patterns | Phase 5 (Assessment) |
+| `frontend-patterns` | React, Next.js patterns | Phase 5 (Assessment) |
+| `coding-standards` | Language best practices | Phase 8 (Implementation) |
+| **Rules** | | |
+| `security.md` | Mandatory security checks | Phase 9 (Code Review) |
+| `testing.md` | TDD, 80% coverage requirement | Phase 8 (Implementation) |
+| `coding-style.md` | Immutability, file organization | Phase 8 (Implementation) |
+| `patterns.md` | Common code patterns | Phase 5 (Assessment) |
+| `performance.md` | Model selection, context management | Phase 8 (Implementation) |
+| **Contexts** | | |
+| `dev.md` | Development mode context | Phase 8 (Implementation) |
+| `review.md` | Code review mode context | Phase 9 (Code Review) |
+| `research.md` | Research mode context | Phase 3 (Research) |
+| **Hooks** | | |
+| Memory persistence | Save/load context across sessions | Session lifecycle |
+| Strategic compact | Suggest compaction at intervals | Large tool counts |
+| Code quality | Auto-format, console.log warnings | File edits |
+| **Additional Agents** | | |
+| `planner` | Implementation planning | Alternative to Phase 6 |
+| `tdd-guide` | Test-driven development guide | Phase 8 guidance |
+| `security-reviewer` | Security vulnerability analysis | Phase 9 enhancement |
+| `build-error-resolver` | Fix build errors | Build failures |
+| `refactor-cleaner` | Dead code cleanup | Phase 11 (Cleanup) |
+| **Additional Commands** | | |
+| `/plan` | Quick planning | Small tasks |
+| `/tdd` | Test-driven development | Testing focus |
+| `/e2e` | E2E test generation | UI testing |
+| `/learn` | Extract patterns mid-session | Knowledge capture |
+
+## Context Mode Switching
+
+Different phases of development benefit from different operational contexts. Switch contexts to optimize behavior:
+
+| Context | When to Use | Behavior |
+|---------|------------|----------|
+| **research** | Phase 3 (Research), Phase 5 (Assessment) | Gather information, explore options, document findings. Prioritize breadth over depth. |
+| **dev** | Phase 8 (Implementation), Phase 11 (Cleanup) | Write code first, explain after. Prefer working solutions over perfect. Run tests after changes. |
+| **review** | Phase 7 (Spec Review), Phase 9 (Code Review) | Critical analysis, specification validation. Identify issues, verify against requirements. |
+
+**How to switch contexts:**
+- The Coordinator agent automatically applies appropriate context per phase
+- Manual override: Load the relevant `contexts/{mode}.md` file when needed
+- Context affects: response style, tool prioritization, verification approach
+
 ## Architecture Overview
 
 ```
@@ -253,11 +308,18 @@ Analyze information and identify/create spec directory under `specification/` wi
 
 **AGENT:** Invoke `super-dev:research-agent`
 
+**CONTEXT:** Apply `research` mode for information gathering and exploration
+
 The research-agent:
 - Gets current timestamp via Time MCP
 - Adds year context to queries
 - Filters by recency
 - Flags deprecated information
+
+**Integrated Tools:**
+- **continuous-learning skill**: Auto-extracts reusable patterns from research sessions
+- **backend-patterns/frontend-patterns**: Reference for architectural patterns
+- **coding-standards**: Language-specific best practices lookup
 
 **Output:** `[doc-index]-research-report.md` with freshness scores
 
@@ -368,6 +430,8 @@ Coordinator reviews all documents for alignment and completeness.
 
 ## Phase 8: Execution & QA (PARALLEL Agents)
 
+**CONTEXT:** Apply `dev` mode for implementation focus
+
 **CRITICAL CHANGE:** The Coordinator invokes TWO agents in PARALLEL, with CodeRabbit running proactively:
 
 ```
@@ -395,6 +459,13 @@ Coordinator reviews all documents for alignment and completeness.
 - `super-dev:dev-executor` - Implements code, invokes specialist developers
 - `super-dev:qa-agent` - Modality-specific testing and verification (merged planning + execution)
 - **CodeRabbit CLI (Background)** - Proactive code review starting immediately when dev begins implementation
+
+**Integrated Skills & Rules:**
+- **tdd-workflow skill**: Test-first methodology with 80%+ coverage requirement
+- **testing rules**: Enforces TDD, unit/integration/E2E test coverage
+- **coding-style rules**: Immutability, file organization (200-400 lines typical), error handling
+- **performance rules**: Model selection guidance (Haiku for lightweight, Sonnet for development)
+- **patterns reference**: Common patterns for API responses, custom hooks, repository pattern
 
 ### Code Quality Standards (MANDATORY - Enforced During Implementation)
 
@@ -443,7 +514,14 @@ Coordinator reviews all documents for alignment and completeness.
 
 ## Phase 9: Code Review
 
+**CONTEXT:** Apply `review` mode for critical analysis
+
 **AGENT:** Invoke `super-dev:code-reviewer`
+
+**Integrated Skills & Rules:**
+- **security-review skill**: Comprehensive security checklist validation
+- **security rules**: Mandatory security checks (no hardcoded secrets, input validation, XSS/CSRF protection)
+- **coding-style rules**: Code quality verification (immutability, no deep nesting, proper error handling)
 
 Run specification-aware code review focused on correctness, security, performance, and maintainability. Scope to changed files and implementation summary; reference acceptance criteria from the spec.
 
@@ -561,6 +639,53 @@ Coordinator verifies:
 | Skill | Purpose |
 |-------|---------|
 | `super-dev:dev-rules` | Core development rules and philosophy |
+| `tdd-workflow` | Test-driven development methodology (80%+ coverage) |
+| `security-review` | Security checklist and validation |
+| `continuous-learning` | Auto-extract patterns from sessions |
+| `strategic-compact` | Manual compaction suggestions |
+| `coding-standards` | Language best practices reference |
+| `backend-patterns` | API, database, caching patterns |
+| `frontend-patterns` | React, Next.js patterns |
+
+## Rules Reference
+
+The `rules/` directory contains modular always-follow guidelines that apply throughout the workflow:
+
+| Rule | Applies To | Key Requirements |
+|------|-----------|------------------|
+| `security.md` | Phase 9 (Code Review) | No hardcoded secrets, input validation, XSS/CSRF protection |
+| `testing.md` | Phase 8 (Implementation) | TDD, 80% coverage, unit/integration/E2E tests |
+| `coding-style.md` | Phase 8 (Implementation) | Immutability, 200-400 line files, proper error handling |
+| `patterns.md` | Phase 5 (Assessment) | Common code patterns (API format, hooks, repository) |
+| `performance.md` | Model Selection | Haiku (lightweight), Sonnet (development), Opus (complex) |
+| `hooks.md` | Session Lifecycle | Hook usage guidelines |
+| `git-workflow.md` | Phase 12 (Commit) | Commit format, PR process |
+| `agents.md` | Task Delegation | When to delegate to subagents |
+
+## Hooks Reference
+
+The `hooks/` directory provides trigger-based automations:
+
+### PreToolUse Hooks
+- Block dev servers outside tmux
+- Reminder to use tmux for long-running commands
+- Pause before git push to review changes
+- Block creation of unnecessary .md files
+- Suggest manual compaction at logical intervals
+
+### PostToolUse Hooks
+- Log PR URL and provide review command after PR creation
+- Auto-format JS/TS files with Prettier after edits
+- TypeScript check after editing .ts/.tsx files
+- Warn about console.log statements after edits
+
+### SessionStart/Stop Hooks
+- Load previous context on new session
+- Save state before context compaction
+- Persist learnings on session end
+- Evaluate session for extractable patterns
+
+**Hooks Configuration:** Add to `~/.claude/settings.json` under `hooks` section.
 
 ## Key Differences from Previous Version
 
@@ -571,7 +696,14 @@ Coordinator verifies:
 5. **Time MCP**: Research agent uses current timestamp
 6. **grep/ast-grep**: Assessment/debug agents use code search skills
 7. **Final Verification**: Coordinator verifies all artifacts complete
+8. **NEW: Integrated Ecosystem**: Enhanced with everything-claude-code skills, rules, contexts, and hooks
+9. **NEW: Context Mode Switching**: Dynamic context injection for dev/review/research modes
+10. **NEW: TDD Workflow**: Comprehensive test-driven development methodology
+11. **NEW: Security Review**: Enhanced security validation and checklist
+12. **NEW: Continuous Learning**: Auto-extract patterns from sessions
 
 ## Notes
 
-All agents are provided by this plugin (`super-dev:*` prefix). The plugin is self-contained.
+All core agents are provided by this plugin (`super-dev:*` prefix).
+
+The plugin is self-contained with integrated best practices including skills, rules, contexts, and hooks.

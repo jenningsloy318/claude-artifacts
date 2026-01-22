@@ -1,6 +1,8 @@
 # Super Dev Plugin
 
-A coordinator-driven development workflow plugin for Claude Code with parallel agent execution for implementing features, fixing bugs, and refactoring code.
+A comprehensive coordinator-driven development workflow plugin for Claude Code with parallel agent execution for implementing features, fixing bugs, and refactoring code.
+
+**Enhanced with best practices from [everything-claude-code](https://github.com/affaan-m/everything-claude-code)**
 
 ## Overview
 
@@ -14,7 +16,7 @@ This plugin provides a systematic 12-phase development workflow orchestrated by 
 
 ## Usage
 
-### Command
+### Main Command
 
 ```
 /super-dev:run [description of task]
@@ -26,6 +28,21 @@ This plugin provides a systematic 12-phase development workflow orchestrated by 
 /super-dev:run Fix the login button not responding on mobile
 /super-dev:run Implement user profile page with avatar upload
 /super-dev:run Refactor the authentication module for better testability
+```
+
+### Additional Commands
+
+```
+/plan - Implementation planning with planner agent
+/tdd - Test-driven development workflow
+/e2e - E2E test generation
+/code-review - Quality and security review
+/build-fix - Fix build errors
+/refactor-clean - Dead code removal
+/learn - Extract patterns mid-session
+/test-coverage - Check test coverage
+/update-docs - Update documentation
+/update-codemaps - Update code maps
 ```
 
 ## Architecture
@@ -51,6 +68,121 @@ This plugin provides a systematic 12-phase development workflow orchestrated by 
 └─────────┘            └─────────┘            └─────────┘
 ```
 
+## Plugin Structure
+
+```
+super-dev-plugin/
+├── agents/                    # Specialized agents (29 total)
+│   ├── coordinator.md              # Central Coordinator Agent (super-dev unique)
+│   ├── dev-executor.md             # Development Executor
+│   ├── qa-executor.md              # QA Executor
+│   ├── docs-executor.md            # Documentation Executor
+│   ├── architecture-agent.md       # Architecture Design (super-dev unique)
+│   ├── ui-ux-designer.md           # UI/UX Design (super-dev unique)
+│   ├── spec-writer.md              # Specification Writer (super-dev unique)
+│   ├── research-agent.md           # Research Agent (super-dev unique)
+│   ├── code-reviewer.md            # Specification-Aware Review (super-dev unique)
+│   ├── debug-analyzer.md           # Debug Analysis
+│   ├── code-assessor.md            # Code Assessment
+│   ├── requirements-clarifier.md   # Requirements Clarification
+│   ├── search-agent.md             # Multi-Source Search
+│   ├── qa-agent.md                 # QA Testing
+│   │
+│   # Additional agents:
+│   ├── architect.md                # System Design
+│   ├── build-error-resolver.md     # Build Error Resolution
+│   ├── doc-updater.md              # Documentation Updates
+│   ├── e2e-runner.md               # E2E Testing
+│   ├── planner.md                  # Implementation Planning
+│   ├── refactor-cleaner.md         # Dead Code Cleanup
+│   ├── security-reviewer.md        # Security Analysis
+│   ├── tdd-guide.md                # Test-Driven Development
+│   │
+│   # Developer Specialists:
+│   ├── rust-developer.md
+│   ├── golang-developer.md
+│   ├── frontend-developer.md
+│   ├── backend-developer.md
+│   ├── android-developer.md
+│   ├── ios-developer.md
+│   ├── macos-app-developer.md
+│   └── windows-app-developer.md
+│
+├── commands/                   # Slash commands (18 total)
+│   # super-dev commands:
+│   ├── run.md                     # Main entry point
+│   ├── architecture-design.md
+│   ├── code-assessment.md
+│   ├── code-review.md
+│   ├── debug-analysis.md
+│   ├── documentation.md
+│   ├── execute.md
+│   ├── research.md
+│   └── ui-ux-design.md
+│   # Additional commands:
+│   ├── build-fix.md
+│   ├── e2e.md
+│   ├── learn.md
+│   ├── plan.md
+│   ├── refactor-clean.md
+│   ├── tdd.md
+│   ├── test-coverage.md
+│   ├── update-codemaps.md
+│   └── update-docs.md
+│
+├── skills/                     # Skills (10 items)
+│   # super-dev skills:
+│   ├── super-dev/                 # Main orchestrator skill
+│   └── dev-rules/                 # Core development rules and philosophy
+│   # Additional skills:
+│   ├── tdd-workflow/              # Test-Driven Development methodology
+│   ├── security-review/           # Security checklist
+│   ├── continuous-learning/       # Auto-extract patterns from sessions
+│   ├── strategic-compact/         # Manual compaction suggestions
+│   ├── backend-patterns.md        # API, database, caching patterns
+│   ├── frontend-patterns.md       # React, Next.js patterns
+│   ├── coding-standards.md        # Language best practices
+│   └── project-guidelines-example.md
+│
+├── rules/                      # Always-follow guidelines (NEW - 8 files)
+│   ├── agents.md                 # When to delegate to subagents
+│   ├── coding-style.md           # Immutability, file organization
+│   ├── git-workflow.md           # Commit format, PR process
+│   ├── hooks.md                  # Hook usage guidelines
+│   ├── patterns.md               # Common code patterns
+│   ├── performance.md            # Model selection, context management
+│   ├── security.md               # Mandatory security checks
+│   └── testing.md                # TDD, coverage requirements
+│
+├── contexts/                   # Dynamic system prompt injection (NEW)
+│   ├── dev.md                    # Development mode context
+│   ├── review.md                 # Code review mode context
+│   └── research.md               # Research/exploration mode context
+│
+├── hooks/                      # Trigger-based automations (NEW)
+│   ├── hooks.json                # All hooks configuration
+│   ├── memory-persistence/       # Session lifecycle hooks
+│   │   ├── pre-compact.sh        # Save state before compaction
+│   │   ├── session-start.sh      # Load previous context
+│   │   └── session-end.sh        # Persist learnings on end
+│   └── strategic-compact/        # Compaction suggestions
+│       └── suggest-compact.sh
+│
+├── mcp-configs/                # MCP server configurations (NEW)
+│   └── mcp-servers.json          # GitHub, Supabase, Vercel, Railway, etc.
+│
+├── plugins/                    # Plugin ecosystem documentation (NEW)
+│   └── README.md                # Plugins and marketplaces guide
+│
+├── examples/                   # Example configurations (NEW)
+│   ├── CLAUDE.md                # Example project-level config
+│   ├── user-CLAUDE.md           # Example user-level config
+│   └── statusline.json          # Example statusline config
+│
+└── scripts/                    # Utility scripts
+    └── (existing scripts)
+```
+
 ## Workflow Phases
 
 | Phase | Name | Agent/Skill | Description |
@@ -70,31 +202,30 @@ This plugin provides a systematic 12-phase development workflow orchestrated by 
 | 10-11 | Cleanup & Commit | Coordinator | Remove temp files, commit changes |
 | 12 | Final Verification | Coordinator | Verify all complete |
 
-## Plugin Structure
+## Key Features
 
-```
-super-dev-plugin/
-├── skills/
-│   ├── super-dev/        # Main orchestrator skill
-│   └── dev-rules/        # Development rules and philosophy
-├── agents/
-│   ├── coordinator.md          # Central Coordinator Agent
-│   ├── dev-executor.md         # Development Executor
-│   ├── qa-executor.md          # QA Executor
-│   ├── docs-executor.md        # Documentation Executor
-│   ├── requirements-clarifier.md
-│   ├── research-agent.md       # Enhanced with Time MCP
-│   ├── search-agent.md
-│   ├── debug-analyzer.md       # Enhanced with grep/ast-grep
-│   ├── code-assessor.md        # Enhanced with grep/ast-grep
-│   ├── code-reviewer.md
-│   ├── architecture-agent.md
-│   ├── ui-ux-designer.md
-│   ├── spec-writer.md
-│   └── qa-agent.md
-└── commands/
-    └── run.md
-```
+### Super-Dev Unique Features
+
+1. **Coordinator Agent** - Central orchestrator for all workflow phases
+2. **Git Worktree Requirement** - MANDATORY isolation for development
+3. **Specification-Aware Code Review** - Validates against technical specs
+4. **Parallel Execution** - Three executors run simultaneously (dev + qa + docs)
+5. **Build Queue Management** - Rust/Go serialization for resource safety
+6. **Time MCP Integration** - Freshness-aware research queries
+7. **ast-grep Integration** - Structural code analysis for assessment/debug
+
+### Additional Integrated Features
+
+1. **TDD Workflow Skill** - Comprehensive test-driven development methodology
+2. **Security Review Skill** - Security checklist and validation
+3. **Continuous Learning** - Auto-extract patterns from sessions
+4. **Strategic Compact** - Manual compaction suggestions
+5. **Rules System** - Modular always-follow guidelines
+6. **Contexts** - Dynamic system prompt injection (dev/review/research modes)
+7. **Enhanced Hooks** - Memory persistence, console.log warnings, Prettier auto-format
+8. **MCP Configurations** - Pre-configured MCP server templates
+9. **Additional Agents** - planner, tdd-guide, security-reviewer, refactor-cleaner, etc.
+10. **Additional Commands** - /plan, /tdd, /e2e, /learn, /refactor-clean, etc.
 
 ## Agents
 
@@ -136,52 +267,127 @@ During Phase 8-9, THREE executors run in PARALLEL:
 | `ui-ux-designer` | Create UI/UX design specifications | `super-dev:ui-ux-designer` |
 | `spec-writer` | Write specifications | `super-dev:spec-writer` |
 | `qa-agent` | Modality-specific QA testing | `super-dev:qa-agent` |
+| `planner` | Implementation planning | `planner` |
+| `tdd-guide` | Test-driven development | `tdd-guide` |
+| `security-reviewer` | Security analysis | `security-reviewer` |
+| `build-error-resolver` | Fix build errors | `build-error-resolver` |
+| `refactor-cleaner` | Dead code cleanup | `refactor-cleaner` |
+| `doc-updater` | Documentation sync | `doc-updater` |
+| `e2e-runner` | Playwright E2E testing | `e2e-runner` |
 
-### Developer Specialists
+## Skills
 
-The dev-executor invokes these specialists based on technology:
+### super-dev
 
-| Agent | Purpose | Languages/Frameworks |
-|-------|---------|---------------------|
-| `rust-developer` | Rust systems programming | Rust 1.75+, Tokio, axum |
-| `golang-developer` | Go backend development | Go 1.21+, stdlib, gin, chi |
-| `frontend-developer` | Web frontend development | React 19, Next.js 15, TypeScript |
-| `backend-developer` | Backend/API development | Node.js/TS, Python, FastAPI |
-| `android-developer` | Android app development | Kotlin, Jetpack Compose |
-| `ios-developer` | iOS app development | Swift, SwiftUI |
-| `windows-app-developer` | Windows desktop development | C#/.NET 8+, WinUI 3 |
-| `macos-app-developer` | macOS desktop development | Swift, SwiftUI, AppKit |
+Main entry point skill that documents the workflow. The Coordinator Agent is invoked to orchestrate all phases.
 
-## Key Features
+### dev-rules
 
-### Time MCP Integration (Research Phase)
+Core development rules and standards including:
+- Git workflow rules (no GitHub Actions, selective commits)
+- Git Worktree Requirement (CRITICAL - MANDATORY)
+- Git Safety & Checkpoint Rules
+- Development philosophy (incremental development, pragmatic approach)
+- Quality standards (testability, readability, consistency)
+- Decision framework priorities
+- Figma MCP Integration Rules
+- MCP Script Usage
+- Time MCP Rules
+- Codebase Search with ast-grep
+- Documentation Update Rules
 
-The research-agent uses Time MCP to:
-- Get current timestamp for query context
-- Add year context to searches
-- Filter by recency (Fresh/Current/Dated/Outdated)
-- Flag deprecated information
+### tdd-workflow (NEW)
 
-### grep/ast-grep Integration (Assessment/Debug)
+Comprehensive test-driven development methodology with:
+- Tests BEFORE code requirement
+- 80%+ minimum coverage (unit + integration + E2E)
+- Test patterns for Jest/Vitest, Playwright
+- Mocking external services
+- Coverage verification
+- Best practices and common mistakes
 
-The code-assessor and debug-analyzer use:
-- **Grep**: Text pattern search for code analysis
-- **ast-grep skill**: Structural code analysis
-- **Coverage tracking**: Ensures all relevant files analyzed
+### security-review (NEW)
 
-### Parallel Execution (Implementation Phase)
+Security checklist and validation:
+- No hardcoded secrets
+- Input validation
+- SQL injection prevention
+- XSS/CSRF protection
+- Authentication/authorization verification
+- Rate limiting on endpoints
+- Error message sanitization
 
-Three executors run simultaneously:
-- `dev-executor`: Implements code changes
-- `qa-executor`: Writes and runs tests
-- `docs-executor`: Updates documentation
+### continuous-learning (NEW)
 
-### Build Queue (Rust/Go)
+Auto-extract patterns from sessions:
+- Runs on Stop hook (lightweight)
+- Detects error_resolution, debugging_techniques, workarounds
+- Saves learned skills to ~/.claude/skills/learned/
+- Configurable min_session_length
 
-For Rust and Go projects:
-- Only ONE build process at a time
-- Prevents cargo/go build conflicts
-- Coordinator manages queue priority
+### strategic-compact (NEW)
+
+Manual compaction suggestions:
+- Suggests compact at logical intervals
+- After threshold tool calls
+- When transitioning phases
+- Preserves context through milestones
+
+### coding-standards (NEW)
+
+Language best practices reference.
+
+### backend-patterns (NEW)
+
+API, database, caching patterns.
+
+### frontend-patterns (NEW)
+
+React, Next.js patterns.
+
+## Rules
+
+The `rules/` directory contains modular always-follow guidelines:
+
+- **agents.md** - When to delegate to subagents
+- **coding-style.md** - Immutability, file organization, error handling
+- **git-workflow.md** - Commit format, PR process
+- **hooks.md** - Hook usage guidelines
+- **patterns.md** - Common code patterns (API response format, custom hooks, repository pattern)
+- **performance.md** - Model selection (Haiku/Sonnet/Opus), context window management
+- **security.md** - Mandatory security checks
+- **testing.md** - TDD, 80% coverage requirement
+
+## Contexts
+
+The `contexts/` directory provides dynamic system prompt injection:
+
+- **dev.md** - Development mode (write code first, prefer working solutions)
+- **review.md** - Code review mode (critical analysis, specification validation)
+- **research.md** - Research mode (gather information, explore options)
+
+## Hooks
+
+The `hooks/` directory provides trigger-based automations:
+
+### PreToolUse Hooks
+- Block dev servers outside tmux
+- Reminder to use tmux for long-running commands
+- Pause before git push to review changes
+- Block creation of unnecessary .md files
+- Suggest manual compaction at logical intervals
+
+### PostToolUse Hooks
+- Log PR URL and provide review command after PR creation
+- Auto-format JS/TS files with Prettier after edits
+- TypeScript check after editing .ts/.tsx files
+- Warn about console.log statements after edits
+
+### SessionStart/Stop Hooks
+- Load previous context on new session
+- Save state before context compaction
+- Persist learnings on session end
+- Evaluate session for extractable patterns
 
 ## Output Documents
 
@@ -198,20 +404,11 @@ All documents are created in `specification/[index]-[name]/` directory:
 9. `[index]-task-list.md` - Detailed task list
 10. `[index]-implementation-summary.md` - Final summary
 
-## Skills
-
-### super-dev
-
-Main entry point skill that documents the workflow. The Coordinator Agent is invoked to orchestrate all phases.
-
-### dev-rules
-
-Core development rules and standards including:
-- Git workflow rules
-- Development philosophy (incremental development, pragmatic approach)
-- Quality standards (testability, readability, consistency)
-- Decision framework priorities
-
 ## License
 
 MIT
+
+## Credits
+
+- **super-dev-plugin** - Coordinator-driven development workflow
+- **everything-claude-code** - Additional agents, commands, skills, hooks, rules, and configurations

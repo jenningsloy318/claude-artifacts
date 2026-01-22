@@ -84,6 +84,45 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.py --owner "[o
 
 **See `${CLAUDE_PLUGIN_ROOT}/scripts/README.md` for full documentation.**
 
+## Hooks System (from everything-claude-code)
+
+The `hooks/` directory provides trigger-based automations that enhance development workflow:
+
+### Available Hooks
+
+| Hook Type | Trigger | Purpose |
+|-----------|---------|---------|
+| **PreToolUse** | Before any tool call | Block dev servers outside tmux, pause before git push |
+| **PostToolUse** | After any tool call | Auto-format JS/TS, TypeScript check, console.log warnings |
+| **SessionStart** | New session begins | Load previous context, check learned skills |
+| **PreCompact** | Before context compaction | Save session state |
+| **Stop** | Session ends | Evaluate for extractable patterns, persist learnings |
+
+### Key Hook Features
+
+1. **Memory Persistence**: Automatically saves context before compaction and loads it on session start
+2. **Continuous Learning**: Evaluates sessions for reusable patterns and extracts them
+3. **Code Quality**: Auto-formats with Prettier, warns about console.log statements
+4. **Git Safety**: Pauses before push to review changes, blocks unnecessary .md files
+5. **Strategic Compact**: Suggests manual compaction at logical intervals (50 tool calls)
+
+### Configuration
+
+Add to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [...],
+    "PostToolUse": [...],
+    "SessionStart": [...],
+    "Stop": [...]
+  }
+}
+```
+
+**See `hooks/hooks.json` for complete configuration.**
+
 ## Time MCP Rules (MUST follow)
 
 - In every prompt, add the current date and time as extra context
@@ -366,6 +405,32 @@ Only skip reproduction steps if:
 - Record failure reasons and specific error messages
 - Research 2-3 alternative implementation approaches
 - Question basic assumptions: Is it over-abstracted? Can it be decomposed?
+
+## Rules System (from everything-claude-code)
+
+The `rules/` directory contains modular always-follow guidelines:
+
+### Available Rules
+
+| Rule | Focus | Key Points |
+|------|-------|------------|
+| `security.md` | Security | No hardcoded secrets, input validation, XSS/CSRF protection |
+| `coding-style.md` | Code Quality | Immutability, 200-400 line files, proper error handling |
+| `testing.md` | Testing | TDD, 80% coverage, unit/integration/E2E tests |
+| `patterns.md` | Patterns | Common patterns (API format, custom hooks, repository) |
+| `performance.md` | Performance | Model selection (Haiku/Sonnet/Opus), context management |
+| `git-workflow.md` | Git | Commit format, PR process |
+| `hooks.md` | Hooks | Hook usage guidelines |
+| `agents.md` | Delegation | When to delegate to subagents |
+
+### Using Rules
+
+Rules are automatically referenced by:
+- Phase 8 (Implementation): coding-style, testing, performance, patterns
+- Phase 9 (Code Review): security, coding-style
+- Phase 12 (Commit): git-workflow
+
+**Always follow applicable rules during development.**
 
 ## Using This Skill
 
