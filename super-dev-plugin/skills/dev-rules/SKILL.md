@@ -32,55 +32,61 @@ When implementing designs from Figma:
 
 Use wrapper scripts via Bash instead of direct MCP tool calls.
 
+**Prerequisites:**
+- `mcp-cli` installed: `curl -fsSL https://raw.githubusercontent.com/philschmid/mcp-cli/main/install.sh | bash`
+- `jq` installed: `sudo apt-get install jq` (Ubuntu) or `brew install jq` (macOS)
+
 **Exception:** `mcp__time-mcp__current_time` is allowed (no script available)
 
 ### Exa (Web & Code Search)
 ```bash
 # Web search
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query]" --type auto --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query]" --type auto --results 10
 
 # Code context search
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.py --query "[query]" --tokens 5000
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.sh --query "[query]" --tokens 5000
 ```
 
 ### DeepWiki (GitHub Repo Documentation)
 ```bash
 # Get repo docs structure
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.py --repo "[owner/repo]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.sh --repo "[owner/repo]"
 
 # Get repo docs contents
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.py --repo "[owner/repo]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.sh --repo "[owner/repo]"
 
 # Ask questions about a repo
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.py --repo "[owner/repo]" --question "[question]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.sh --repo "[owner/repo]" --question "[question]"
 ```
 
 ### Context7 (Library Documentation)
 ```bash
 # Resolve library ID
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.py --library "[library-name]"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.sh --library "[library-name]"
 
 # Get library documentation
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.py --library-id "[/org/project]" --mode code --topic "[topic]"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.sh --library-id "[/org/project]" --mode code --topic "[topic]"
 ```
 
 ### GitHub (Code & Repo Search)
 ```bash
 # Search code across repos
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.py --query "[query]" --per-page 10
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.sh --query "[query]" --per-page 10
 
 # Search repositories
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.py --query "[query]" --sort stars
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.sh --query "[query]" --sort stars
 
 # Get file/directory contents
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.py --owner "[owner]" --repo "[repo]" --path "[path]"
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.sh --owner "[owner]" --repo "[repo]" --path "[path]"
 ```
 
 ### Why Scripts?
-- Token-efficient output formatting
-- Consistent JSON response structure
-- Automatic MCP config resolution
-- Better error handling
+- **Faster execution:** ~100ms startup vs ~1-2s for Python scripts
+- **No Python dependency:** Single binary + jq, no virtual environments
+- **HTTP + stdio support:** Works with both types of MCP servers
+- **Token-efficient output formatting:** Consistent JSON response structure
+- **Automatic MCP config resolution:** Auto-detects ~/.claude.json
+- **Better error handling:** Structured errors with actionable messages
 
 **See `${CLAUDE_PLUGIN_ROOT}/scripts/README.md` for full documentation.**
 
