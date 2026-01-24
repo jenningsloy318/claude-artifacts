@@ -15,43 +15,43 @@ Use wrapper scripts via Bash instead of direct MCP tool calls.
 ### Exa (Web & Code Search)
 ```bash
 # Web search
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query]" --type auto --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query]" --type auto --results 10
 
 # Code context search
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.py --query "[query]" --tokens 5000
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.sh --query "[query]" --tokens 5000
 ```
 
 ### DeepWiki (GitHub Repo Documentation)
 ```bash
 # Get repo docs structure
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.py --repo "[owner/repo]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.sh --repo "[owner/repo]"
 
 # Get repo docs contents
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.py --repo "[owner/repo]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.sh --repo "[owner/repo]"
 
 # Ask questions about a repo
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.py --repo "[owner/repo]" --question "[question]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.sh --repo "[owner/repo]" --question "[question]"
 ```
 
 ### Context7 (Library Documentation)
 ```bash
 # Resolve library ID
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.py --library "[library-name]"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.sh --library "[library-name]"
 
 # Get library documentation
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.py --library-id "[/org/project]" --mode code --topic "[topic]"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.sh --library-id "[/org/project]" --mode code --topic "[topic]"
 ```
 
 ### GitHub (Code & Repo Search)
 ```bash
 # Search code across repos
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.py --query "[query]" --per-page 10
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.sh --query "[query]" --per-page 10
 
 # Search repositories
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.py --query "[query]" --sort stars
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.sh --query "[query]" --sort stars
 
 # Get file/directory contents
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.py --owner "[owner]" --repo "[repo]" --path "[path]"
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.sh --owner "[owner]" --repo "[repo]" --path "[path]"
 ```
 
 ## Core Capabilities
@@ -441,7 +441,7 @@ Every research report must:
 
 #### Web Search
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[search query]" --type auto --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[search query]" --type auto --results 10
 ```
 
 **Parameters:**
@@ -452,7 +452,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[search query]"
 
 #### Code Context
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.py --query "[code query]" --tokens 5000
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.sh --query "[code query]" --tokens 5000
 ```
 
 **Parameters:**
@@ -465,7 +465,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.py --query "[code query]" --t
 
 #### Get Repo Documentation Structure
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.py --repo "owner/repo"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.sh --repo "owner/repo"
 ```
 
 **Parameters:**
@@ -473,7 +473,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.py --repo "own
 
 #### Get Repo Documentation Contents
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.py --repo "owner/repo"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.sh --repo "owner/repo"
 ```
 
 **Parameters:**
@@ -481,7 +481,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.py --repo "owne
 
 #### Ask Questions About a Repo
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.py --repo "owner/repo" --question "How does X work?"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.sh --repo "owner/repo" --question "How does X work?"
 ```
 
 **Parameters:**
@@ -494,7 +494,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.py --repo "owner/rep
 
 #### Resolve Library ID
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.py --library "library-name"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.sh --library "library-name"
 ```
 
 **Parameters:**
@@ -502,7 +502,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.py --library "li
 
 #### Get Library Documentation
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.py --library-id "/org/project" --mode code --topic "routing"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.sh --library-id "/org/project" --mode code --topic "routing"
 ```
 
 **Parameters:**
@@ -517,7 +517,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.py --library-id "/o
 
 #### Search Code
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.py --query "HttpConnector language:python" --per-page 10
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.sh --query "HttpConnector language:python" --per-page 10
 ```
 
 **Parameters:**
@@ -529,7 +529,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.py --query "Http
 
 #### Search Repositories
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.py --query "topic:mcp stars:>100" --sort stars
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.sh --query "topic:mcp stars:>100" --sort stars
 ```
 
 **Parameters:**
@@ -541,7 +541,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.py --query "top
 
 #### Get File Contents
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.py --owner "owner" --repo "repo" --path "src/"
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.sh --owner "owner" --repo "repo" --path "src/"
 ```
 
 **Parameters:**
@@ -559,7 +559,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.py --owner "ow
    - `~/.claude/settings.json`
    - `.claude/settings.local.json` (project)
 
-2. Connect to HTTP MCP server using `mcp-use` HttpConnector (auto-installed if missing)
+2. Connect to HTTP MCP server using `mcp-cli` (auto-detected from config)
 
 3. Call the MCP tools and return JSON results
 

@@ -144,11 +144,10 @@ super-dev-plugin/
 │   ├── coding-standards.md        # Language best practices
 │   └── project-guidelines-example.md
 │
-├── rules/                      # Always-follow guidelines (NEW - 8 files)
+├── rules/                      # Always-follow guidelines (NEW - 7 files)
 │   ├── agents.md                 # When to delegate to subagents
 │   ├── coding-style.md           # Immutability, file organization
 │   ├── git-workflow.md           # Commit format, PR process
-│   ├── hooks.md                  # Hook usage guidelines
 │   ├── patterns.md               # Common code patterns
 │   ├── performance.md            # Model selection, context management
 │   ├── security.md               # Mandatory security checks
@@ -158,15 +157,6 @@ super-dev-plugin/
 │   ├── dev.md                    # Development mode context
 │   ├── review.md                 # Code review mode context
 │   └── research.md               # Research/exploration mode context
-│
-├── hooks/                      # Trigger-based automations (NEW)
-│   ├── hooks.json                # All hooks configuration
-│   ├── memory-persistence/       # Session lifecycle hooks
-│   │   ├── pre-compact.sh        # Save state before compaction
-│   │   ├── session-start.sh      # Load previous context
-│   │   └── session-end.sh        # Persist learnings on end
-│   └── strategic-compact/        # Compaction suggestions
-│       └── suggest-compact.sh
 │
 ├── mcp-configs/                # MCP server configurations (NEW)
 │   └── mcp-servers.json          # GitHub, Supabase, Vercel, Railway, etc.
@@ -218,14 +208,11 @@ super-dev-plugin/
 
 1. **TDD Workflow Skill** - Comprehensive test-driven development methodology
 2. **Security Review Skill** - Security checklist and validation
-3. **Continuous Learning** - Auto-extract patterns from sessions
-4. **Strategic Compact** - Manual compaction suggestions
-5. **Rules System** - Modular always-follow guidelines
-6. **Contexts** - Dynamic system prompt injection (dev/review/research modes)
-7. **Enhanced Hooks** - Memory persistence, console.log warnings, Prettier auto-format
-8. **MCP Configurations** - Pre-configured MCP server templates
-9. **Additional Agents** - planner, tdd-guide, security-reviewer, refactor-cleaner, etc.
-10. **Additional Commands** - /plan, /tdd, /e2e, /learn, /refactor-clean, etc.
+3. **Rules System** - Modular always-follow guidelines
+4. **Contexts** - Dynamic system prompt injection (dev/review/research modes)
+5. **MCP Configurations** - Pre-configured MCP server templates
+6. **Additional Agents** - planner, tdd-guide, security-reviewer, refactor-cleaner, etc.
+7. **Additional Commands** - /plan, /tdd, /e2e, /refactor-clean, etc.
 
 ## Agents
 
@@ -317,22 +304,6 @@ Security checklist and validation:
 - Rate limiting on endpoints
 - Error message sanitization
 
-### continuous-learning (NEW)
-
-Auto-extract patterns from sessions:
-- Runs on Stop hook (lightweight)
-- Detects error_resolution, debugging_techniques, workarounds
-- Saves learned skills to ~/.claude/skills/learned/
-- Configurable min_session_length
-
-### strategic-compact (NEW)
-
-Manual compaction suggestions:
-- Suggests compact at logical intervals
-- After threshold tool calls
-- When transitioning phases
-- Preserves context through milestones
-
 ### coding-standards (NEW)
 
 Language best practices reference.
@@ -352,7 +323,6 @@ The `rules/` directory contains modular always-follow guidelines:
 - **agents.md** - When to delegate to subagents
 - **coding-style.md** - Immutability, file organization, error handling
 - **git-workflow.md** - Commit format, PR process
-- **hooks.md** - Hook usage guidelines
 - **patterns.md** - Common code patterns (API response format, custom hooks, repository pattern)
 - **performance.md** - Model selection (Haiku/Sonnet/Opus), context window management
 - **security.md** - Mandatory security checks
@@ -365,29 +335,6 @@ The `contexts/` directory provides dynamic system prompt injection:
 - **dev.md** - Development mode (write code first, prefer working solutions)
 - **review.md** - Code review mode (critical analysis, specification validation)
 - **research.md** - Research mode (gather information, explore options)
-
-## Hooks
-
-The `hooks/` directory provides trigger-based automations:
-
-### PreToolUse Hooks
-- Block dev servers outside tmux
-- Reminder to use tmux for long-running commands
-- Pause before git push to review changes
-- Block creation of unnecessary .md files
-- Suggest manual compaction at logical intervals
-
-### PostToolUse Hooks
-- Log PR URL and provide review command after PR creation
-- Auto-format JS/TS files with Prettier after edits
-- TypeScript check after editing .ts/.tsx files
-- Warn about console.log statements after edits
-
-### SessionStart/Stop Hooks
-- Load previous context on new session
-- Save state before context compaction
-- Persist learnings on session end
-- Evaluate session for extractable patterns
 
 ## Output Documents
 
@@ -411,4 +358,4 @@ MIT
 ## Credits
 
 - **super-dev-plugin** - Coordinator-driven development workflow
-- **everything-claude-code** - Additional agents, commands, skills, hooks, rules, and configurations
+- **everything-claude-code** - Additional agents, commands, skills, rules, and configurations

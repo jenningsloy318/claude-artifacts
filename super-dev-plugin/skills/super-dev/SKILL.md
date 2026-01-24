@@ -33,10 +33,6 @@ This skill is enhanced with complementary tools from the everything-claude-code 
 | `dev.md` | Development mode context | Phase 8 (Implementation) |
 | `review.md` | Code review mode context | Phase 9 (Code Review) |
 | `research.md` | Research mode context | Phase 3 (Research) |
-| **Hooks** | | |
-| Memory persistence | Save/load context across sessions | Session lifecycle |
-| Strategic compact | Suggest compaction at intervals | Large tool counts |
-| Code quality | Auto-format, console.log warnings | File edits |
 | **Additional Agents** | | |
 | `planner` | Implementation planning | Alternative to Phase 6 |
 | `tdd-guide` | Test-driven development guide | Phase 8 guidance |
@@ -658,34 +654,8 @@ The `rules/` directory contains modular always-follow guidelines that apply thro
 | `coding-style.md` | Phase 8 (Implementation) | Immutability, 200-400 line files, proper error handling |
 | `patterns.md` | Phase 5 (Assessment) | Common code patterns (API format, hooks, repository) |
 | `performance.md` | Model Selection | Haiku (lightweight), Sonnet (development), Opus (complex) |
-| `hooks.md` | Session Lifecycle | Hook usage guidelines |
 | `git-workflow.md` | Phase 12 (Commit) | Commit format, PR process |
 | `agents.md` | Task Delegation | When to delegate to subagents |
-
-## Hooks Reference
-
-The `hooks/` directory provides trigger-based automations:
-
-### PreToolUse Hooks
-- Block dev servers outside tmux
-- Reminder to use tmux for long-running commands
-- Pause before git push to review changes
-- Block creation of unnecessary .md files
-- Suggest manual compaction at logical intervals
-
-### PostToolUse Hooks
-- Log PR URL and provide review command after PR creation
-- Auto-format JS/TS files with Prettier after edits
-- TypeScript check after editing .ts/.tsx files
-- Warn about console.log statements after edits
-
-### SessionStart/Stop Hooks
-- Load previous context on new session
-- Save state before context compaction
-- Persist learnings on session end
-- Evaluate session for extractable patterns
-
-**Hooks Configuration:** Add to `~/.claude/settings.json` under `hooks` section.
 
 ## Key Differences from Previous Version
 
@@ -696,14 +666,13 @@ The `hooks/` directory provides trigger-based automations:
 5. **Time MCP**: Research agent uses current timestamp
 6. **grep/ast-grep**: Assessment/debug agents use code search skills
 7. **Final Verification**: Coordinator verifies all artifacts complete
-8. **NEW: Integrated Ecosystem**: Enhanced with everything-claude-code skills, rules, contexts, and hooks
+8. **NEW: Integrated Ecosystem**: Enhanced with everything-claude-code skills, rules, and contexts
 9. **NEW: Context Mode Switching**: Dynamic context injection for dev/review/research modes
 10. **NEW: TDD Workflow**: Comprehensive test-driven development methodology
 11. **NEW: Security Review**: Enhanced security validation and checklist
-12. **NEW: Continuous Learning**: Auto-extract patterns from sessions
 
 ## Notes
 
 All core agents are provided by this plugin (`super-dev:*` prefix).
 
-The plugin is self-contained with integrated best practices including skills, rules, contexts, and hooks.
+The plugin is self-contained with integrated best practices including skills, rules, and contexts.

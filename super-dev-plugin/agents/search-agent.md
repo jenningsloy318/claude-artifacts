@@ -120,43 +120,43 @@ Original: "React state management"
 
 Code:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.py --query "[query]" --tokens 10000
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.py --query "[query] language:[lang]" --per-page 10
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.py --library "[library]"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.py --library-id "[id]" --mode code --topic "[topic]"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.py --repo "[owner/repo]" --question "[question]"
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_code.sh --query "[query]" --tokens 10000
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_code.sh --query "[query] language:[lang]" --per-page 10
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.sh --library "[library]"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.sh --library-id "[id]" --mode code --topic "[topic]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_ask.sh --repo "[owner/repo]" --question "[question]"
 ```
 
 Docs:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.py --library "[library]"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.py --library-id "[id]" --mode info
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.py --repo "[owner/repo]"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.py --repo "[owner/repo]"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query] site:docs" --type deep --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_resolve.sh --library "[library]"
+${CLAUDE_PLUGIN_ROOT}/scripts/context7/context7_docs.sh --library-id "[id]" --mode info
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_structure.sh --repo "[owner/repo]"
+${CLAUDE_PLUGIN_ROOT}/scripts/deepwiki/deepwiki_contents.sh --repo "[owner/repo]"
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query] site:docs" --type deep --results 10
 ```
 
 Academic:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query] arxiv OR paper" --type deep --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query] arxiv OR paper" --type deep --results 10
 ```
 
 Web:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query]" --type auto --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query]" --type auto --results 10
 ```
 
 Social:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query] site:reddit.com" --results 10
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query] site:x.com OR site:twitter.com" --results 10
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.py --query "[query] site:youtube.com" --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query] site:reddit.com" --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query] site:x.com OR site:twitter.com" --results 10
+${CLAUDE_PLUGIN_ROOT}/scripts/exa/exa_search.sh --query "[query] site:youtube.com" --results 10
 ```
 
 GitHub:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.py --query "[query]" --sort stars --per-page 10
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.py --owner "[owner]" --repo "[repo]" --path "[path]"
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_search_repos.sh --query "[query]" --sort stars --per-page 10
+${CLAUDE_PLUGIN_ROOT}/scripts/github/github_file_contents.sh --owner "[owner]" --repo "[repo]" --path "[path]"
 ```
 
 All:
@@ -240,10 +240,10 @@ TypeScript shape:
 Location: `${CLAUDE_PLUGIN_ROOT}/scripts/`
 
 Available:
-- Exa: `exa_search.py`, `exa_code.py`
-- DeepWiki: `deepwiki_structure.py`, `deepwiki_contents.py`, `deepwiki_ask.py`
-- Context7: `context7_resolve.py`, `context7_docs.py`
-- GitHub: `github_search_code.py`, `github_search_repos.py`, `github_file_contents.py`
+- Exa: `exa_search.sh`, `exa_code.sh`
+- DeepWiki: `deepwiki_structure.sh`, `deepwiki_contents.sh`, `deepwiki_ask.sh`
+- Context7: `context7_resolve.sh`, `context7_docs.sh`
+- GitHub: `github_search_code.sh`, `github_search_repos.sh`, `github_file_contents.sh`
 
 Output JSON:
 ```json

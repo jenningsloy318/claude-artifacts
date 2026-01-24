@@ -418,18 +418,20 @@ This will check:
 
 | Script | Python (.py) | Shell (.sh) | Status |
 |--------|---------------|-------------|--------|
-| `exa_search` | ✅ | ✅ | Complete |
-| `exa_code` | ✅ | ✅ | Complete |
-| `deepwiki_structure` | ✅ | ⏳ | Pending |
-| `deepwiki_contents` | ✅ | ⏳ | Pending |
-| `deepwiki_ask` | ✅ | ⏳ | Pending |
-| `context7_resolve` | ✅ | ⏳ | Pending |
-| `context7_docs` | ✅ | ⏳ | Pending |
-| `github_search_code` | ✅ | ⏳ | Pending |
-| `github_search_repos` | ✅ | ⏳ | Pending |
-| `github_file_contents` | ✅ | ⏳ | Pending |
+| `exa_search` | ❌ | ✅ | Migrated |
+| `exa_code` | ❌ | ✅ | Migrated |
+| `deepwiki_structure` | ❌ | ✅ | Migrated |
+| `deepwiki_contents` | ❌ | ✅ | Migrated |
+| `deepwiki_ask` | ❌ | ✅ | Migrated |
+| `context7_resolve` | ❌ | ✅ | Migrated |
+| `context7_docs` | ❌ | ✅ | Migrated |
+| `github_search_code` | ❌ | ✅ | Migrated |
+| `github_search_repos` | ❌ | ✅ | Migrated |
+| `github_file_contents` | ❌ | ✅ | Migrated |
 
-Legend: ✅ Complete | ⏳ Pending | ❌ Not Applicable
+**Migration Complete!** All scripts have been migrated to use mcp-cli (shell scripts). Python scripts have been removed.
+
+Legend: ✅ Complete | ❌ Removed
 
 ## Resources
 
