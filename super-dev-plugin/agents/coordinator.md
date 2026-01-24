@@ -122,9 +122,11 @@ Checkpoint rule:
 | Phase | Skip When |
 |-------|-----------|
 | Phase 4 | Not a bug fix (new feature, refactor) |
-| Phase 5.3 | Simple change (< 3 files), cosmetic update |
-| Phase 5.5 | No UI components (backend, CLI, API) |
+| Phase 5.3 | Skip only when NO architecture work is needed. When architecture is involved, NEVER skip - MANDATORY user review required. |
+| Phase 5.5 | Skip only when NO UI components (backend, CLI, API). When UI is involved, NEVER skip - MANDATORY user review required. |
 | Phase 9 | Never skip (code review is mandatory unless explicitly waived by project lead) |
+
+**IMPORTANT:** Phase 5.3 (Architecture) and Phase 5.5 (UI/UX Design) MUST NOT be skipped when the feature involves architecture or UI components. These phases require MANDATORY user review before proceeding.
 
 ## Task Assignment Patterns
 

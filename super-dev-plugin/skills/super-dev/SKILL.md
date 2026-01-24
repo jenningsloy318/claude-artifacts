@@ -438,6 +438,8 @@ The code-assessor:
 
 **REFERENCE:** `templates/reference/architecture-patterns` - Architecture patterns, SOLID principles, ADR templates
 
+**MANDATORY USER REVIEW:** Architecture design MUST be reviewed by user. Never skip this phase when architecture is involved.
+
 **Output:** `[doc-index]-architecture.md` and ADRs
 
 ---
@@ -446,32 +448,28 @@ The code-assessor:
 
 **AGENT:** Invoke `super-dev:ui-ux-designer`
 
-**MANDATORY TOOL:** **Pencil MCP tools are REQUIRED for all UI/UX design work**
-
-**CRITICAL:** This phase CANNOT be completed without using Pencil MCP tools. Design work done outside of Pencil MCP tools will be rejected.
+**TOOL:** **Pencil MCP** for all UI/UX design work
 
 **REFERENCE:** `templates/reference/ui-ux-patterns` - UI/UX patterns, wireframes, accessibility guidelines
 
-**Design Guidelines (MANDATORY):**
+**Design Guidelines:**
 - **Apple Design Aesthetic**: Follow Apple Human Interface Guidelines patterns
 - **No Dark Mode**: Design for light mode only
 - **No Purple**: Avoid purple color schemes
 - **Emit AI Flavor**: Create natural, human-feeling interfaces (avoid generic AI-generated aesthetics)
 
-**Pencil MCP Tools Mandatory Workflow:**
-1. Start with `get_editor_state()` to understand current context
-2. Use `get_guidelines()` for design principles (code, table, tailwind, landing-page)
-3. Use `get_style_guide_tags()` + `get_style_guide()` for visual design reference
-4. Use `batch_design()` to create/modify UI components
-5. Use `get_screenshot()` to validate design visually before marking complete
+**Design Process:**
+1. Prompt Pencil MCP to create the UI/UX design
+2. Save the design to: `specification/[spec-index]-[spec-name].pen`
+3. Generate design spec documentation
 
-**Verification:**
-- [ ] All UI components created using Pencil MCP `batch_design()`
-- [ ] Design validated using Pencil MCP `get_screenshot()`
-- [ ] Design follows Apple aesthetic (light mode, no purple)
-- [ ] Design has natural, human feel (not AI-generated appearance)
+**MANDATORY USER REVIEW:** UI/UX design MUST be reviewed by user. Never skip this phase when UI is involved.
 
-**Output:** `[doc-index]-design-spec.md`
+**Output:**
+- `specification/[spec-index]-[spec-name].pen` - Pencil design file
+- `[doc-index]-design-spec.md` - Design specification
+
+**Enforcement Rule:** In all subsequent phases (Implementation, Code Review), if UI/UX work is involved, the implementation MUST follow the `[spec-index]-[spec-name].pen` design file.
 
 ---
 
@@ -479,11 +477,21 @@ The code-assessor:
 
 **AGENT:** Invoke `super-dev:spec-writer`
 
+**Input References:**
+- If Phase 5.3 (Architecture) was completed: Reference `[doc-index]-architecture.md` and ADRs
+- If Phase 5.5 (UI/UX Design) was completed: Reference `specification/[spec-index]-[spec-name].pen` design file
+
 **Output:** Three files (or sub-specifications for large features)
 - `[doc-index]-specification.md` - Technical specification
 - `[doc-index]-implementation-plan.md` - Implementation plan
 - `[doc-index]-task-list.md` - Task list
 (Or sub-specifications for large features)
+
+**UI/UX Design Integration (when applicable):**
+- [ ] Specification references the `.pen` design file
+- [ ] Implementation plan includes UI components from design
+- [ ] Task list includes UI implementation tasks matching design elements
+- [ ] Design file path included: `specification/[spec-index]-[spec-name].pen`
 
 ---
 
@@ -530,9 +538,17 @@ Coordinator reviews all documents for alignment and completeness.
 - [ ] Research findings incorporated
 - [ ] Architecture decisions documented (if applicable)
 - [ ] Design specifications included (if UI feature)
+- [ ] **Design file referenced** - If UI feature, `specification/[spec-index]-[spec-name].pen` is referenced in spec
+- [ ] **UI tasks from design** - If UI feature, task list includes all UI components from design
 - [ ] Implementation plan is feasible
 - [ ] Task list is complete and actionable
 - [ ] All acceptance criteria are testable
+
+### UI/UX Design Validation (when applicable)
+- [ ] **.pen design file exists** at `specification/[spec-index]-[spec-name].pen`
+- [ ] **Specification references design file** - Design file path included in technical spec
+- [ ] **Implementation plan includes UI components** - All design elements are in implementation plan
+- [ ] **Task list covers design implementation** - Each design component has corresponding task
 
 ---
 
@@ -596,6 +612,13 @@ Coordinator reviews all documents for alignment and completeness.
 - [ ] **Explicit error handling** - No "handle errors", specify exact error handling
 - [ ] **No optional behaviors** - Everything is explicit or explicitly conditional
 
+#### UI/UX Design Enforcement (MANDATORY when applicable)
+- [ ] **Follow .pen design file** - If `specification/[spec-index]-[spec-name].pen` exists, implementation MUST follow it exactly
+- [ ] **Open design file first** - Before implementing UI, use Pencil MCP to open and review the `.pen` file
+- [ ] **Match visual specifications** - Layout, colors, spacing must match the design
+- [ ] **Implement all components** - All UI elements from the design must be implemented
+- [ ] **Apple aesthetic compliance** - Ensure light mode, no purple, natural feel
+
 **CodeRabbit will flag violations of these standards.**
 
 ### CodeRabbit Proactive Execution
@@ -632,6 +655,13 @@ Coordinator reviews all documents for alignment and completeness.
 - **coding-style rules**: Code quality verification (immutability, no deep nesting, proper error handling)
 
 Run specification-aware code review focused on correctness, security, performance, and maintainability. Scope to changed files and implementation summary; reference acceptance criteria from the spec.
+
+**UI/UX Design Review (when applicable):**
+- [ ] **Open .pen design file** - Use Pencil MCP to open `specification/[spec-index]-[spec-name].pen`
+- [ ] **Compare implementation with design** - Verify UI matches the design file exactly
+- [ ] **Check Apple aesthetic compliance** - Light mode, no purple, natural feel
+- [ ] **Verify all components implemented** - All design elements are present in code
+- [ ] **Screenshot validation** - Use `get_screenshot()` to compare visual output with design
 
 **Iteration Rule (Coordinator-Enforced):**
 - If verdict is Blocked or Changes Requested, or any Critical/High/Medium findings exist, or any acceptance criteria are Not Met/Partial → RE-ENTER Phase 8
