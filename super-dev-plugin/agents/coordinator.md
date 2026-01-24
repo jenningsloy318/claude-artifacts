@@ -73,14 +73,15 @@ Phase 3:  Research                  → Task(subagent_type: "super-dev:research-
 Phase 4:  Debug Analysis (bugs)     → Task(subagent_type: "super-dev:debug-analyzer")
 Phase 5:  Code Assessment           → Task(subagent_type: "super-dev:code-assessor")
 Phase 5.3: Architecture (complex)   → Task(subagent_type: "super-dev:architecture-agent")
-Phase 5.5: UI/UX (with UI)          → Task(subagent_type: "super-dev:ui-ux-designer")
+Phase 5.5: UI/UX (with UI)          → Task(subagent_type: "super-dev:ui-ux-designer") + Pencil MCP tools
 Phase 6:  Specification Writing     → Task(subagent_type: "super-dev:spec-writer")
 Phase 7:  Specification Review      → Manual review
 Phase 8: Execution & QA (PARALLEL)  → super-dev:dev-executor, super-dev:qa-agent
 Phase 9: Code Review                → Task(subagent_type: "super-dev:code-reviewer")
 Phase 10: Documentation Update      → Task(subagent_type: "super-dev:docs-executor")
 Phase 11: Cleanup                   → Manual cleanup
-Phase 12: Commit & Push             → Git operations
+Phase 11.5: Manual Confirmation     → User review before merge (optional)
+Phase 12: Commit & Merge to Main    → Git operations (worktree workflow)
 Phase 13: Final Verification        → Verification checklist
 ```
 
@@ -267,10 +268,11 @@ Task(
 | → Phase 7 | 06-specification.md, 07-implementation-plan.md, 08-task-list.md exist |
 | → Phase 8 | All spec documents reviewed, currently in worktree |
 | → Phase 10 | Code review approved |
-| → Phase 11 | Documentation updated |
-| → Phase 12 | No temp files, clean code |
+| → Phase 11 | Documentation updated, cleanup complete |
+| → Phase 11.5 | User confirmation received (if optional phase used) |
+| → Phase 12 | All changes committed and merged to main |
 | → Phase 13 | All changes committed |
-| Complete | Git status clean, all pushed |
+| Complete | Git status clean, merged to main |
 
 ### Build/Test Verification
 
@@ -432,20 +434,21 @@ Git:
 - [ ] All changes staged
 - [ ] Commit message follows project conventions
 - [ ] Changes committed
-- [ ] Changes pushed to remote
+- [ ] Changes merged to main branch (worktree workflow)
 - [ ] git status shows "working tree clean"
 ```
 
-### MANDATORY: Commit and Push on Completion
+### MANDATORY: Commit and Merge to Main on Completion
 
 **CRITICAL REQUIREMENT:** When ALL tasks are complete, you MUST:
 
 1. **Stage all changes**: `git add [files]` (only files modified in this session)
 2. **Commit with descriptive message**: Follow project commit conventions
-3. **Push to remote**: `git push` to ensure changes are not lost
-4. **Verify clean state**: `git status` must show "working tree clean"
+3. **Switch to main branch**: `git checkout main` (from main repo, not worktree)
+4. **Merge worktree branch**: `git merge [spec-index]-[spec-name]`
+5. **Verify clean state**: `git status` must show "working tree clean"
 
-**NEVER** mark workflow as complete without committing and pushing all changes.
+**NEVER** mark workflow as complete without merging changes to main branch.
 
 ### Final Report
 

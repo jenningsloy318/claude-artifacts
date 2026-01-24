@@ -122,7 +122,8 @@ Development Workflow Progress:
 - [ ] Iteration Rule: Loop Phase 8 and Phase 9 until no blocking issues remain (no Critical/High/Medium findings; all acceptance criteria met)
 - [ ] Phase 10: Documentation Update (docs-executor sequential)
 - [ ] Phase 11: Cleanup (remove temp files, unused code)
-- [ ] Phase 12: Commit & Push (descriptive message)
+- [ ] Phase 11.5: Manual Confirmation (user review before merge - optional)
+- [ ] Phase 12: Commit & Merge to Main (worktree workflow)
 - [ ] Phase 13: Final Verification (Coordinator verifies all complete)
 ```
 
@@ -445,7 +446,30 @@ The code-assessor:
 
 **AGENT:** Invoke `super-dev:ui-ux-designer`
 
+**MANDATORY TOOL:** **Pencil MCP tools are REQUIRED for all UI/UX design work**
+
+**CRITICAL:** This phase CANNOT be completed without using Pencil MCP tools. Design work done outside of Pencil MCP tools will be rejected.
+
 **REFERENCE:** `templates/reference/ui-ux-patterns` - UI/UX patterns, wireframes, accessibility guidelines
+
+**Design Guidelines (MANDATORY):**
+- **Apple Design Aesthetic**: Follow Apple Human Interface Guidelines patterns
+- **No Dark Mode**: Design for light mode only
+- **No Purple**: Avoid purple color schemes
+- **Emit AI Flavor**: Create natural, human-feeling interfaces (avoid generic AI-generated aesthetics)
+
+**Pencil MCP Tools Mandatory Workflow:**
+1. Start with `get_editor_state()` to understand current context
+2. Use `get_guidelines()` for design principles (code, table, tailwind, landing-page)
+3. Use `get_style_guide_tags()` + `get_style_guide()` for visual design reference
+4. Use `batch_design()` to create/modify UI components
+5. Use `get_screenshot()` to validate design visually before marking complete
+
+**Verification:**
+- [ ] All UI components created using Pencil MCP `batch_design()`
+- [ ] Design validated using Pencil MCP `get_screenshot()`
+- [ ] Design follows Apple aesthetic (light mode, no purple)
+- [ ] Design has natural, human feel (not AI-generated appearance)
 
 **Output:** `[doc-index]-design-spec.md`
 
@@ -642,12 +666,43 @@ After code review is complete and approved, update all documentation:
 
 ---
 
-## Phase 11-12: Cleanup & Commit
+## Phase 11: Cleanup
 
 Coordinator ensures:
 1. No temp files remain
-2. All changes committed
-3. Descriptive commit messages
+2. Unused code removed
+
+---
+
+## Phase 11.5: Manual Confirmation (OPTIONAL)
+
+**PURPOSE:** Allow user to review changes before merging to main branch.
+
+**Process:**
+1. Present summary of all changes made
+2. Ask user for confirmation to proceed with merge
+3. Wait for user approval before proceeding to Phase 12
+
+**Skip this phase if:**
+- User explicitly requests automatic merge
+- Changes are trivial (documentation, small fixes)
+
+---
+
+## Phase 12: Commit & Merge to Main
+
+**Worktree Workflow:** Since development happens in isolated worktrees, changes are merged back to main branch rather than pushed.
+
+**Process:**
+1. **Stage all changes**: `git add [files]` (only files modified in this session)
+2. **Commit with descriptive message**: Follow project commit conventions
+3. **Switch to main branch**: `git checkout main` (from main repo, not worktree)
+4. **Merge worktree branch**: `git merge [spec-index]-[spec-name]`
+5. **Clean up worktree**: `git worktree remove .worktree/[spec-index]-[spec-name]` (optional, after successful merge)
+
+**CRITICAL REQUIREMENT:** When ALL tasks are complete, you MUST complete the merge to main.
+
+**NEVER** mark workflow as complete without merging changes to main branch.
 
 ---
 
@@ -658,19 +713,8 @@ Coordinator verifies:
 - [ ] Implementation summary complete
 - [ ] No missing code or files
 - [ ] All changes committed
-- [ ] All changes pushed to remote
+- [ ] Changes merged to main branch
 - [ ] Git status clean (working tree clean)
-
-### MANDATORY: Commit and Push on Completion
-
-**CRITICAL REQUIREMENT:** When ALL tasks are complete, you MUST:
-
-1. **Stage all changes**: `git add [files]` (only files modified in this session)
-2. **Commit with descriptive message**: Follow project commit conventions
-3. **Push to remote**: `git push` to ensure changes are not lost
-4. **Verify clean state**: `git status` must show "working tree clean"
-
-**NEVER** mark workflow as complete without committing and pushing all changes.
 
 ---
 
