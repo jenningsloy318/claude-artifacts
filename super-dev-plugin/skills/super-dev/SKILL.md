@@ -460,13 +460,13 @@ The code-assessor:
 
 **Design Process:**
 1. Prompt Pencil MCP to create the UI/UX design
-2. Save the design to: `specification/[spec-index]-[spec-name].pen`
+2. Save the design to: `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen`
 3. Generate design spec documentation
 
 **MANDATORY USER REVIEW:** UI/UX design MUST be reviewed by user. Never skip this phase when UI is involved.
 
 **Output:**
-- `specification/[spec-index]-[spec-name].pen` - Pencil design file
+- `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen` - Pencil design file
 - `[doc-index]-design-spec.md` - Design specification
 
 **Enforcement Rule:** In all subsequent phases (Implementation, Code Review), if UI/UX work is involved, the implementation MUST follow the `[spec-index]-[spec-name].pen` design file.
@@ -479,7 +479,7 @@ The code-assessor:
 
 **Input References:**
 - If Phase 5.3 (Architecture) was completed: Reference `[doc-index]-architecture.md` and ADRs
-- If Phase 5.5 (UI/UX Design) was completed: Reference `specification/[spec-index]-[spec-name].pen` design file
+- If Phase 5.5 (UI/UX Design) was completed: Reference `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen` design file
 
 **Output:** Three files (or sub-specifications for large features)
 - `[doc-index]-specification.md` - Technical specification
@@ -491,7 +491,7 @@ The code-assessor:
 - [ ] Specification references the `.pen` design file
 - [ ] Implementation plan includes UI components from design
 - [ ] Task list includes UI implementation tasks matching design elements
-- [ ] Design file path included: `specification/[spec-index]-[spec-name].pen`
+- [ ] Design file path included: `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen`
 
 ---
 
@@ -538,14 +538,14 @@ Coordinator reviews all documents for alignment and completeness.
 - [ ] Research findings incorporated
 - [ ] Architecture decisions documented (if applicable)
 - [ ] Design specifications included (if UI feature)
-- [ ] **Design file referenced** - If UI feature, `specification/[spec-index]-[spec-name].pen` is referenced in spec
+- [ ] **Design file referenced** - If UI feature, `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen` is referenced in spec
 - [ ] **UI tasks from design** - If UI feature, task list includes all UI components from design
 - [ ] Implementation plan is feasible
 - [ ] Task list is complete and actionable
 - [ ] All acceptance criteria are testable
 
 ### UI/UX Design Validation (when applicable)
-- [ ] **.pen design file exists** at `specification/[spec-index]-[spec-name].pen`
+- [ ] **.pen design file exists** at `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen`
 - [ ] **Specification references design file** - Design file path included in technical spec
 - [ ] **Implementation plan includes UI components** - All design elements are in implementation plan
 - [ ] **Task list covers design implementation** - Each design component has corresponding task
@@ -613,7 +613,7 @@ Coordinator reviews all documents for alignment and completeness.
 - [ ] **No optional behaviors** - Everything is explicit or explicitly conditional
 
 #### UI/UX Design Enforcement (MANDATORY when applicable)
-- [ ] **Follow .pen design file** - If `specification/[spec-index]-[spec-name].pen` exists, implementation MUST follow it exactly
+- [ ] **Follow .pen design file** - If `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen` exists, implementation MUST follow it exactly
 - [ ] **Open design file first** - Before implementing UI, use Pencil MCP to open and review the `.pen` file
 - [ ] **Match visual specifications** - Layout, colors, spacing must match the design
 - [ ] **Implement all components** - All UI elements from the design must be implemented
@@ -657,7 +657,7 @@ Coordinator reviews all documents for alignment and completeness.
 Run specification-aware code review focused on correctness, security, performance, and maintainability. Scope to changed files and implementation summary; reference acceptance criteria from the spec.
 
 **UI/UX Design Review (when applicable):**
-- [ ] **Open .pen design file** - Use Pencil MCP to open `specification/[spec-index]-[spec-name].pen`
+- [ ] **Open .pen design file** - Use Pencil MCP to open `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name].pen`
 - [ ] **Compare implementation with design** - Verify UI matches the design file exactly
 - [ ] **Check Apple aesthetic compliance** - Light mode, no purple, natural feel
 - [ ] **Verify all components implemented** - All design elements are present in code
