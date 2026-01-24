@@ -139,59 +139,28 @@ test -f .git && echo "In worktree" || test -d .git && echo "In main repo"
 **You are in a worktree if:**
 - `.git` is a **file** (not a directory) containing `gitdir: path/to/main/.git`
 - `git worktree list` shows the current path as a worktree
-- The directory structure follows pattern: `../.zcf/[project-name]/worktrees/[branch-name]/`
+- The directory structure follows pattern: `.worktree/[branch-name]/`
 
 **You are NOT in a worktree if:**
 - `.git` is a **directory** (main repository, not isolated)
 - `git worktree list` does NOT show the current path
 - Working directly in the main project repository
 
-### MANDATORY User Confirmation
+### Automatic Worktree Creation
 
-**If NOT in a worktree, you MUST:**
+**If NOT in a worktree, automatically create one:**
 
-1. **STOP immediately** - Do not make any changes
-2. **Ask user for confirmation:**
-   ```
-   WARNING: You are not in a git worktree. Current location appears to be the main repository.
-
-   Working directly in the main repository risks:
-   - Mixing work with other development
-   - Accidentally committing incomplete changes
-   - Difficult to isolate and test changes
-   - Harder to discard experimental work
-
-   Options:
-   1. Create a new worktree for this work (recommended)
-   2. Proceed in main repository (user must explicitly confirm)
-
-   Please confirm your choice:
-   - Type "create worktree" to create an isolated worktree
-   - Type "proceed in main" to explicitly continue in main repository
-   ```
-
-3. **WAIT for explicit user confirmation** before proceeding
-4. **Only continue after user types one of:**
-   - `create worktree` - Create a new worktree
-   - `proceed in main` - User explicitly confirms to work in main
-
-### Worktree Creation (User Chooses This)
-
-When user confirms to create a worktree:
+1. **Create worktree** in `.worktree/` directory under project root (no confirmation required)
+2. **Use spec-based naming**: `[spec-index]-[spec-name]`
+3. **Navigate to worktree** for all development work
 
 ```bash
-# Create worktree using the skill
-# This will be handled by zcf:git-worktree skill
+# Create worktree automatically
+git worktree add .worktree/[spec-index]-[spec-name] -b [spec-index]-[spec-name]
+cd .worktree/[spec-index]-[spec-name]
 ```
 
-### Exceptions
-
-**You MAY proceed without worktree ONLY if:**
-- User explicitly types `proceed in main` after seeing the warning above
-- The task is trivial (e.g., viewing a file, not making changes)
-- User has already confirmed work in main repository in this session
-
-**These are the ONLY exceptions. All other cases require worktree.**
+**Note:** Worktree creation is automatic and does not require user confirmation. The default location is always `.worktree/` in the project root.
 
 ## Git Safety & Checkpoint Rules (CRITICAL)
 

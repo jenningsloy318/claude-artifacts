@@ -258,7 +258,7 @@ Task(
 
 | Transition | Verify |
 |------------|--------|
-| → Phase 2 | Spec directory exists, git worktree created, specification/[spec-index]-[spec-name]-workflow-tracking.json initialized |
+| → Phase 2 | Spec directory exists, git worktree created in .worktree/, specification/[spec-index]-[spec-name]-workflow-tracking.json initialized |
 | → Phase 3 | 01-requirements.md exists |
 | → Phase 5 | 02-research-report.md exists |
 | → Phase 6 | 04-assessment.md exists (+ 03-debug-analysis.md if bug) |

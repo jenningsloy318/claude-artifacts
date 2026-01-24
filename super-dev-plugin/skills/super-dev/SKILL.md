@@ -324,8 +324,7 @@ Analyze the task and identify/create an appropriate spec directory:
 After creating/identifying the spec directory, create a matching git worktree:
 
 1. **Worktree location**: `.worktree/[spec-name]/` in project root
-   - Primary: `.worktree/` (user preference)
-   - Also supports: `.worktrees/` for compatibility with existing tools
+   - **DEFAULT**: `.worktree/` in project root (no confirmation required)
    - Worktree name matches spec directory name: `[spec-index]-[spec-name]`
 
 2. **Check for existing worktrees**:
@@ -361,20 +360,15 @@ After creating/identifying the spec directory, create a matching git worktree:
 
 ### Error Handling
 
-- **Worktree already exists**: Ask user if they want to:
-  - Reuse existing worktree (cd to it)
-  - Remove and recreate worktree
-  - Create with different name
-
-- **Already in a worktree**: Verify the current worktree matches the spec directory. If not, ask user to navigate to correct worktree.
-
+- **Worktree already exists**: Reuse existing worktree automatically (cd to it)
+- **Already in a worktree**: Verify the current worktree matches the spec directory. If not, navigate to correct worktree automatically.
 - **Not in worktree after Phase 1**: WARNING: All subsequent phases should be run in the created worktree.
 
 ### Verification Checklist
 
 Before proceeding to Phase 2, verify:
 - [ ] Spec directory exists: `specification/[spec-index]-[spec-name]/`
-- [ ] Git worktree exists: `.worktree/[spec-index]-[spec-name]/` (or `.worktrees/`)
+- [ ] Git worktree exists: `.worktree/[spec-index]-[spec-name]/`
 - [ ] Currently in the created worktree (check with `git worktree list`)
 - [ ] `specification/[spec-index]-[spec-name]-workflow-tracking.json` created with worktree path
 
