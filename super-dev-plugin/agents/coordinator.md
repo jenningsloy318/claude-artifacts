@@ -8,13 +8,13 @@ model: sonnet
 
 The Coordinator MUST create and maintain a JSON tracking file at workflow start. This file tracks all phases and tasks, and the job MUST NOT be marked done until the JSON shows every phase and task complete.
 
-- File: `[spec-directory]/workflow-tracking.json`
+- File: `specification/[spec-index]-[spec-name]-workflow-tracking.json`
 - Created at: Phase 0 (immediately after dev rules are applied)
 - Updated at: Every phase boundary and task completion
 - Completion rule: Workflow cannot proceed to Final Verification (Phase 13) "done" status unless the tracking file indicates all phases and tasks are complete
 
 JSON Schema (example):
-```/dev/null/workflow-tracking.json#L1-45
+```specification/01-feature-workflow-tracking.json#L1-45
 {
   "featureName": "[Feature/Fix Name]",
   "specDirectory": "specification/[spec-index]-[spec-name]",
@@ -258,7 +258,7 @@ Task(
 
 | Transition | Verify |
 |------------|--------|
-| → Phase 2 | Spec directory exists, git worktree created, workflow-tracking.json initialized with paths |
+| → Phase 2 | Spec directory exists, git worktree created, specification/[spec-index]-[spec-name]-workflow-tracking.json initialized |
 | → Phase 3 | 01-requirements.md exists |
 | → Phase 5 | 02-research-report.md exists |
 | → Phase 6 | 04-assessment.md exists (+ 03-debug-analysis.md if bug) |

@@ -340,7 +340,10 @@ After creating/identifying the spec directory, create a matching git worktree:
    cd .worktree/[spec-index]-[spec-name]
    ```
 
-5. **Update workflow-tracking.json** with worktree path:
+5. **Create workflow-tracking.json** in specification directory:
+   ```bash
+   # File location: specification/[spec-index]-[spec-name]-workflow-tracking.json
+   ```
    ```json
    {
      "worktreePath": ".worktree/[spec-index]-[spec-name]",
@@ -366,7 +369,7 @@ Before proceeding to Phase 2, verify:
 - [ ] Spec directory exists: `specification/[spec-index]-[spec-name]/`
 - [ ] Git worktree exists: `.worktree/[spec-index]-[spec-name]/` (or `.worktrees/`)
 - [ ] Currently in the created worktree (check with `git worktree list`)
-- [ ] `workflow-tracking.json` created with worktree path
+- [ ] `specification/[spec-index]-[spec-name]-workflow-tracking.json` created with worktree path
 
 ---
 
