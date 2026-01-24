@@ -8,7 +8,9 @@ model: sonnet
 
 The Coordinator MUST create and maintain a JSON tracking file at workflow start. This file tracks all phases and tasks, and the job MUST NOT be marked done until the JSON shows every phase and task complete.
 
-- File: `specification/[spec-index]-[spec-name]-workflow-tracking.json`
+**CRITICAL: SINGLE FILE LOCATION**
+- **ONLY ONE FILE** created at: `specification/[spec-index]-[spec-name]-workflow-tracking.json`
+- **DO NOT CREATE** another copy inside the sub spec directory (e.g., NOT at `specification/[spec-index]-[spec-name]/workflow-tracking.json`)
 - Created at: Phase 0 (immediately after dev rules are applied)
 - Updated at: Every phase boundary and task completion
 - Completion rule: Workflow cannot proceed to Final Verification (Phase 13) "done" status unless the tracking file indicates all phases and tasks are complete
