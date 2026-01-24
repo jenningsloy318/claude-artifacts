@@ -101,7 +101,7 @@ The Coordinator Agent orchestrates these phases automatically:
 ```
 Development Workflow Progress:
 - [ ] Phase 0: Apply Dev Rules (establish coding standards)
-- [ ] Phase 1: Specification Setup (identify/create spec directory)
+- [ ] Phase 1: Specification Setup (identify spec directory + create git worktree)
 - [ ] Phase 2: Requirements Clarification (gather requirements)
 - [ ] Phase 3: Research (best practices, docs, patterns) [Time MCP + Option Presentation]
 - [ ] Phase 4: Debug Analysis (for bugs only) [grep/ast-grep]
@@ -288,7 +288,85 @@ Establishes coding standards, git practices, and quality standards.
 
 ## Phase 1: Specification Setup
 
-Analyze information and identify/create spec directory under `specification/` with [spec-index(number)]-[spec name]
+**IMPORTANT:** This phase performs two critical setup tasks in sequence:
+
+1. **Identify or create spec directory** under `specification/` with pattern `[spec-index]-[spec-name]`
+2. **Create git worktree** under `.worktree/` with the same name as the spec directory
+
+### Step 1: Spec Directory Setup
+
+Analyze the task and identify/create an appropriate spec directory:
+
+1. **Check for existing specs**: Search `specification/` for directories matching the current task
+   - If a relevant spec exists: reuse it (confirm with user if multiple matches)
+   - If no match exists: create a new spec directory
+
+2. **New spec directory naming**: `[spec-index]-[spec-name]/`
+   - `spec-index`: Next sequential number (01, 02, 03, ...)
+   - `spec-name`: Kebab-case descriptor (e.g., `user-auth`, `payment-integration`, `fix-login-bug`)
+
+3. **Create spec directory structure**:
+   ```bash
+   mkdir -p "specification/[spec-index]-[spec-name]"
+   ```
+
+### Step 2: Git Worktree Creation
+
+**CRITICAL:** ALL development work MUST be done in a git worktree for isolation.
+
+After creating/identifying the spec directory, create a matching git worktree:
+
+1. **Worktree location**: `.worktree/[spec-name]/` in project root
+   - Primary: `.worktree/` (user preference)
+   - Also supports: `.worktrees/` for compatibility with existing tools
+   - Worktree name matches spec directory name: `[spec-index]-[spec-name]`
+
+2. **Check for existing worktrees**:
+   ```bash
+   git worktree list
+   ```
+
+3. **Create new worktree** if it doesn't exist:
+   ```bash
+   # Method 1: Using git worktree command directly
+   git worktree add .worktree/[spec-index]-[spec-name] -b [spec-index]-[spec-name]
+
+   # Method 2: Using zcf:git-worktree command (if available)
+   /zcf/git-worktree add [spec-index]-[spec-name]
+   ```
+
+4. **Navigate to worktree** for all subsequent development:
+   ```bash
+   cd .worktree/[spec-index]-[spec-name]
+   ```
+
+5. **Update workflow-tracking.json** with worktree path:
+   ```json
+   {
+     "worktreePath": ".worktree/[spec-index]-[spec-name]",
+     "specDirectory": "specification/[spec-index]-[spec-name]",
+     ...
+   }
+   ```
+
+### Error Handling
+
+- **Worktree already exists**: Ask user if they want to:
+  - Reuse existing worktree (cd to it)
+  - Remove and recreate worktree
+  - Create with different name
+
+- **Already in a worktree**: Verify the current worktree matches the spec directory. If not, ask user to navigate to correct worktree.
+
+- **Not in worktree after Phase 1**: WARNING: All subsequent phases should be run in the created worktree.
+
+### Verification Checklist
+
+Before proceeding to Phase 2, verify:
+- [ ] Spec directory exists: `specification/[spec-index]-[spec-name]/`
+- [ ] Git worktree exists: `.worktree/[spec-index]-[spec-name]/` (or `.worktrees/`)
+- [ ] Currently in the created worktree (check with `git worktree list`)
+- [ ] `workflow-tracking.json` created with worktree path
 
 ---
 

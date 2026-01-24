@@ -14,9 +14,11 @@ The Coordinator MUST create and maintain a JSON tracking file at workflow start.
 - Completion rule: Workflow cannot proceed to Final Verification (Phase 13) "done" status unless the tracking file indicates all phases and tasks are complete
 
 JSON Schema (example):
-```/dev/null/workflow-tracking.json#L1-40
+```/dev/null/workflow-tracking.json#L1-45
 {
   "featureName": "[Feature/Fix Name]",
+  "specDirectory": "specification/[spec-index]-[spec-name]",
+  "worktreePath": ".worktree/[spec-index]-[spec-name]",
   "startedAt": "[ISO timestamp]",
   "phases": [
     { "id": 0, "name": "Apply Dev Rules", "status": "complete", "startedAt": "...", "completedAt": "..." },
@@ -63,7 +65,7 @@ You are the Central Coordinator Agent, the single authority for orchestrating al
 
 ```
 Phase 0:  Apply Dev Rules           → Skill(skill: "super-dev:dev-rules")
-Phase 1:  Specification Setup       → Manual (create spec directory)
+Phase 1:  Specification Setup       → Create spec directory + git worktree
 Phase 2:  Requirements Clarification → Task(subagent_type: "super-dev:requirements-clarifier")
 Phase 3:  Research                  → Task(subagent_type: "super-dev:research-agent")
 Phase 4:  Debug Analysis (bugs)     → Task(subagent_type: "super-dev:debug-analyzer")
@@ -256,11 +258,12 @@ Task(
 
 | Transition | Verify |
 |------------|--------|
+| → Phase 2 | Spec directory exists, git worktree created, workflow-tracking.json initialized with paths |
 | → Phase 3 | 01-requirements.md exists |
 | → Phase 5 | 02-research-report.md exists |
 | → Phase 6 | 04-assessment.md exists (+ 03-debug-analysis.md if bug) |
 | → Phase 7 | 06-specification.md, 07-implementation-plan.md, 08-task-list.md exist |
-| → Phase 8 | All spec documents reviewed |
+| → Phase 8 | All spec documents reviewed, currently in worktree |
 | → Phase 10 | Code review approved |
 | → Phase 11 | Documentation updated |
 | → Phase 12 | No temp files, clean code |
@@ -331,6 +334,7 @@ WorkflowState:
   current_phase: Phase
   completed_phases: Set<Phase>
   spec_directory: Path
+  worktree_path: Path
   documents:
     requirements: Path | null
     research: Path | null
