@@ -130,7 +130,7 @@ super-dev-plugin/
 │   ├── update-codemaps.md
 │   └── update-docs.md
 │
-├── skills/                     # Skills (10 items)
+├── skills/                     # Skills (6 items)
 │   # super-dev skills:
 │   ├── super-dev/                 # Main orchestrator skill
 │   └── dev-rules/                 # Core development rules and philosophy
@@ -138,11 +138,14 @@ super-dev-plugin/
 │   ├── tdd-workflow/              # Test-Driven Development methodology
 │   ├── security-review/           # Security checklist
 │   ├── continuous-learning/       # Auto-extract patterns from sessions
-│   ├── strategic-compact/         # Manual compaction suggestions
-│   ├── backend-patterns.md        # API, database, caching patterns
-│   ├── frontend-patterns.md       # React, Next.js patterns
-│   ├── coding-standards.md        # Language best practices
-│   └── project-guidelines-example.md
+│   └── strategic-compact/         # Manual compaction suggestions
+│
+├── templates/                  # Reference materials and examples
+│   └── reference/                # Reference documentation
+│       ├── backend-patterns.md   # API, database, caching patterns
+│       ├── frontend-patterns.md  # React, Next.js patterns
+│       ├── coding-standards.md   # Language best practices
+│       └── project-guidelines-example.md
 │
 ├── rules/                      # Always-follow guidelines (NEW - 7 files)
 │   ├── agents.md                 # When to delegate to subagents
@@ -304,17 +307,25 @@ Security checklist and validation:
 - Rate limiting on endpoints
 - Error message sanitization
 
-### coding-standards (NEW)
+## Reference Materials
+
+The `templates/reference/` directory contains reference documentation:
+
+### coding-standards
 
 Language best practices reference.
 
-### backend-patterns (NEW)
+### backend-patterns
 
 API, database, caching patterns.
 
-### frontend-patterns (NEW)
+### frontend-patterns
 
 React, Next.js patterns.
+
+### project-guidelines-example
+
+Example project-specific skill template (based on Zenith production app).
 
 ## Rules
 

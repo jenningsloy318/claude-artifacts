@@ -20,9 +20,10 @@ This skill is enhanced with complementary tools from the everything-claude-code 
 | `security-review` | Security checklist and validation | Phase 9 (Code Review) |
 | `continuous-learning` | Auto-extract patterns from sessions | Session end |
 | `strategic-compact` | Manual compaction suggestions | Large contexts |
-| `backend-patterns` | API, database, caching patterns | Phase 5 (Assessment) |
-| `frontend-patterns` | React, Next.js patterns | Phase 5 (Assessment) |
-| `coding-standards` | Language best practices | Phase 8 (Implementation) |
+| **Reference Materials** | | |
+| `templates/reference/backend-patterns` | API, database, caching patterns | Phase 5 (Assessment) |
+| `templates/reference/frontend-patterns` | React, Next.js patterns | Phase 5 (Assessment) |
+| `templates/reference/coding-standards` | Language best practices | Phase 8 (Implementation) |
 | **Rules** | | |
 | `security.md` | Mandatory security checks | Phase 9 (Code Review) |
 | `testing.md` | TDD, 80% coverage requirement | Phase 8 (Implementation) |
@@ -395,8 +396,8 @@ The research-agent:
 
 **Integrated Tools:**
 - **continuous-learning skill**: Auto-extracts reusable patterns from research sessions
-- **backend-patterns/frontend-patterns**: Reference for architectural patterns
-- **coding-standards**: Language-specific best practices lookup
+- **templates/reference/backend-patterns** and **templates/reference/frontend-patterns**: Reference for architectural patterns
+- **templates/reference/coding-standards**: Language-specific best practices lookup
 
 **Output:** `[doc-index]-research-report.md` with freshness scores
 
@@ -720,6 +721,13 @@ Coordinator verifies:
 | `security-review` | Security checklist and validation |
 | `continuous-learning` | Auto-extract patterns from sessions |
 | `strategic-compact` | Manual compaction suggestions |
+
+## Reference Materials
+
+The `templates/reference/` directory contains reference documentation for patterns and standards:
+
+| Reference | Purpose |
+|-----------|---------|
 | `coding-standards` | Language best practices reference |
 | `backend-patterns` | API, database, caching patterns |
 | `frontend-patterns` | React, Next.js patterns |
