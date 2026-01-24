@@ -21,6 +21,8 @@ This skill is enhanced with complementary tools from the everything-claude-code 
 | `continuous-learning` | Auto-extract patterns from sessions | Session end |
 | `strategic-compact` | Manual compaction suggestions | Large contexts |
 | **Reference Materials** | | |
+| `templates/reference/architecture-patterns` | Software architecture patterns, SOLID, ADRs | Phase 5.3 (Architecture Design) |
+| `templates/reference/ui-ux-patterns` | UI/UX design patterns, wireframes, accessibility | Phase 5.5 (UI/UX Design) |
 | `templates/reference/backend-patterns` | API, database, caching patterns | Phase 5 (Assessment) |
 | `templates/reference/frontend-patterns` | React, Next.js patterns | Phase 5 (Assessment) |
 | `templates/reference/coding-standards` | Language best practices | Phase 8 (Implementation) |
@@ -433,6 +435,8 @@ The code-assessor:
 
 **AGENT:** Invoke `super-dev:architecture-agent`
 
+**REFERENCE:** `templates/reference/architecture-patterns` - Architecture patterns, SOLID principles, ADR templates
+
 **Output:** `[doc-index]-architecture.md` and ADRs
 
 ---
@@ -440,6 +444,8 @@ The code-assessor:
 ## Phase 5.5: UI/UX Design (Features with UI)
 
 **AGENT:** Invoke `super-dev:ui-ux-designer`
+
+**REFERENCE:** `templates/reference/ui-ux-patterns` - UI/UX patterns, wireframes, accessibility guidelines
 
 **Output:** `[doc-index]-design-spec.md`
 
@@ -728,6 +734,8 @@ The `templates/reference/` directory contains reference documentation for patter
 
 | Reference | Purpose |
 |-----------|---------|
+| `architecture-patterns` | Software architecture patterns, SOLID, ADRs |
+| `ui-ux-patterns` | UI/UX design patterns, wireframes, accessibility |
 | `coding-standards` | Language best practices reference |
 | `backend-patterns` | API, database, caching patterns |
 | `frontend-patterns` | React, Next.js patterns |

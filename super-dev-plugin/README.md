@@ -142,9 +142,11 @@ super-dev-plugin/
 │
 ├── templates/                  # Reference materials and examples
 │   └── reference/                # Reference documentation
-│       ├── backend-patterns.md   # API, database, caching patterns
-│       ├── frontend-patterns.md  # React, Next.js patterns
-│       ├── coding-standards.md   # Language best practices
+│       ├── architecture-patterns.md  # Software architecture patterns, SOLID, ADRs
+│       ├── ui-ux-patterns.md         # UI/UX design patterns, wireframes, accessibility
+│       ├── backend-patterns.md       # API, database, caching patterns
+│       ├── frontend-patterns.md      # React, Next.js patterns
+│       ├── coding-standards.md       # Language best practices
 │       └── project-guidelines-example.md
 │
 ├── rules/                      # Always-follow guidelines (NEW - 7 files)
@@ -310,6 +312,14 @@ Security checklist and validation:
 ## Reference Materials
 
 The `templates/reference/` directory contains reference documentation:
+
+### architecture-patterns
+
+Software architecture patterns, SOLID principles, ADR templates.
+
+### ui-ux-patterns
+
+UI/UX design patterns, wireframes, accessibility guidelines.
 
 ### coding-standards
 
