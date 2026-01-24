@@ -139,7 +139,7 @@ test -f .git && echo "In worktree" || test -d .git && echo "In main repo"
 **You are in a worktree if:**
 - `.git` is a **file** (not a directory) containing `gitdir: path/to/main/.git`
 - `git worktree list` shows the current path as a worktree
-- The directory structure follows pattern: `.worktree/[branch-name]/`
+- The directory structure follows pattern: `.worktree/[spec-index]-[spec-name]/`
 
 **You are NOT in a worktree if:**
 - `.git` is a **directory** (main repository, not isolated)
