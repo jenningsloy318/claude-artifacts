@@ -1,0 +1,28 @@
+{
+  "featureName": "Extract Debugging, Research, Specification, and Testing Patterns to Reference Files",
+  "specDirectory": "specification/02-extract-patterns",
+  "worktreePath": ".worktree/02-extract-patterns",
+  "startedAt": "2026-01-24T22:15:00Z",
+  "phases": [
+    { "id": 0, "name": "Apply Dev Rules", "status": "complete", "startedAt": "2026-01-24T22:15:00Z", "completedAt": "2026-01-24T22:15:00Z" },
+    { "id": 1, "name": "Specification Setup", "status": "complete", "startedAt": "2026-01-24T22:15:00Z", "completedAt": "2026-01-24T22:15:00Z" },
+    { "id": 8, "name": "Execution & QA", "status": "complete", "startedAt": "2026-01-24T22:15:00Z", "completedAt": "2026-01-24T22:25:00Z" }
+  ],
+  "tasks": [
+    { "id": "T8.1", "phase": 8, "description": "Create debugging-patterns.md from debug-analyzer.md", "status": "complete", "files": ["templates/reference/debugging-patterns.md"], "updatedAt": "2026-01-24T22:20:00Z" },
+    { "id": "T8.2", "phase": 8, "description": "Create research-methodology.md from research-agent.md", "status": "complete", "files": ["templates/reference/research-methodology.md"], "updatedAt": "2026-01-24T22:20:00Z" },
+    { "id": "T8.3", "phase": 8, "description": "Create specification-templates.md from spec-writer.md", "status": "complete", "files": ["templates/reference/specification-templates.md"], "updatedAt": "2026-01-24T22:20:00Z" },
+    { "id": "T8.4", "phase": 8, "description": "Create testing-patterns.md from qa-agent.md", "status": "complete", "files": ["templates/reference/testing-patterns.md"], "updatedAt": "2026-01-24T22:20:00Z" },
+    { "id": "T8.5", "phase": 8, "description": "Update super-dev skill references", "status": "complete", "files": ["skills/super-dev/SKILL.md"], "updatedAt": "2026-01-24T22:25:00Z" },
+    { "id": "T8.6", "phase": 8, "description": "Update README.md", "status": "complete", "files": ["README.md"], "updatedAt": "2026-01-24T22:25:00Z" }
+  ],
+  "iteration": {
+    "loops": 0,
+    "lastReviewVerdict": null
+  },
+  "status": {
+    "allPhasesComplete": true,
+    "allTasksComplete": true,
+    "workflowDone": true
+  }
+}

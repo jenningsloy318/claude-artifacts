@@ -144,6 +144,10 @@ super-dev-plugin/
 │   └── reference/                # Reference documentation
 │       ├── architecture-patterns.md  # Software architecture patterns, SOLID, ADRs
 │       ├── ui-ux-patterns.md         # UI/UX design patterns, wireframes, accessibility
+│       ├── debugging-patterns.md     # Systematic debugging methodology, root cause analysis
+│       ├── research-methodology.md   # Multi-source research, option presentation, synthesis
+│       ├── specification-templates.md # Technical spec templates, validation gates
+│       ├── testing-patterns.md       # CLI, Desktop UI, Web testing strategies
 │       ├── backend-patterns.md       # API, database, caching patterns
 │       ├── frontend-patterns.md      # React, Next.js patterns
 │       ├── coding-standards.md       # Language best practices
@@ -320,6 +324,22 @@ Software architecture patterns, SOLID principles, ADR templates.
 ### ui-ux-patterns
 
 UI/UX design patterns, wireframes, accessibility guidelines.
+
+### debugging-patterns
+
+Systematic debugging methodology, root cause analysis, evidence collection, and hypothesis verification.
+
+### research-methodology
+
+Multi-source research, option presentation, Time MCP integration, and synthesis techniques.
+
+### specification-templates
+
+Technical specification templates, validation gates, naming conventions, and quality standards.
+
+### testing-patterns
+
+CLI, Desktop UI, and Web testing strategies, coverage tracking, and quality gates.
 
 ### coding-standards
 

@@ -23,6 +23,10 @@ This skill is enhanced with complementary tools from the everything-claude-code 
 | **Reference Materials** | | |
 | `templates/reference/architecture-patterns` | Software architecture patterns, SOLID, ADRs | Phase 5.3 (Architecture Design) |
 | `templates/reference/ui-ux-patterns` | UI/UX design patterns, wireframes, accessibility | Phase 5.5 (UI/UX Design) |
+| `templates/reference/debugging-patterns` | Systematic debugging methodology, root cause analysis | Phase 4 (Debug Analysis) |
+| `templates/reference/research-methodology` | Multi-source research, option presentation, synthesis | Phase 3 (Research) |
+| `templates/reference/specification-templates` | Technical spec templates, validation gates, naming conventions | Phase 6 (Specification Writing) |
+| `templates/reference/testing-patterns` | CLI, Desktop UI, Web testing strategies, coverage | Phase 8 (Execution & QA) |
 | `templates/reference/backend-patterns` | API, database, caching patterns | Phase 5 (Assessment) |
 | `templates/reference/frontend-patterns` | React, Next.js patterns | Phase 5 (Assessment) |
 | `templates/reference/coding-standards` | Language best practices | Phase 8 (Implementation) |
@@ -736,6 +740,10 @@ The `templates/reference/` directory contains reference documentation for patter
 |-----------|---------|
 | `architecture-patterns` | Software architecture patterns, SOLID, ADRs |
 | `ui-ux-patterns` | UI/UX design patterns, wireframes, accessibility |
+| `debugging-patterns` | Systematic debugging methodology, root cause analysis |
+| `research-methodology` | Multi-source research, option presentation, synthesis |
+| `specification-templates` | Technical spec templates, validation gates, naming conventions |
+| `testing-patterns` | CLI, Desktop UI, Web testing strategies, coverage tracking |
 | `coding-standards` | Language best practices reference |
 | `backend-patterns` | API, database, caching patterns |
 | `frontend-patterns` | React, Next.js patterns |
