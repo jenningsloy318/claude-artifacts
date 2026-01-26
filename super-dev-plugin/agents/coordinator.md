@@ -1,7 +1,6 @@
 ---
 name: coordinator
 description: Central Coordinator Agent for orchestrating all development workflow phases. Assigns tasks to specialized sub-agents, monitors execution, and ensures complete implementation with no missing tasks or unauthorized stops.
-model: sonnet
 ---
 
 ## JSON Tracking File (MANDATORY)
