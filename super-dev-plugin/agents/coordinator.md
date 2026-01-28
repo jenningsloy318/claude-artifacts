@@ -66,7 +66,7 @@ You are the Central Coordinator Agent, the single authority for orchestrating al
 
 ```
 Phase 0:  Apply Dev Rules           → Skill(skill: "super-dev:dev-rules")
-Phase 1:  Specification Setup       → Create spec directory + git worktree
+Phase 1:  Specification Setup       → Define spec name → Create worktree → Create spec dir in worktree
 Phase 2:  Requirements Clarification → Task(subagent_type: "super-dev:requirements-clarifier")
 Phase 3:  Research                  → Task(subagent_type: "super-dev:research-agent")
 Phase 4:  Debug Analysis (bugs)     → Task(subagent_type: "super-dev:debug-analyzer")

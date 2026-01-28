@@ -214,35 +214,34 @@ Establishes coding standards, git practices, and quality standards.
 
 ## Phase 1: Specification Setup
 
-**IMPORTANT:** This phase performs two critical setup tasks in sequence:
+**IMPORTANT:** This phase performs setup tasks in a specific order to ensure proper isolation:
 
-1. **Identify or create spec directory** under `specification/` with pattern `[spec-index]-[spec-name]`
-2. **Create git worktree** under `.worktree/` with the same name as the spec directory
+1. **Define spec directory name** (do not create yet)
+2. **Create git worktree** for isolation
+3. **Create spec directory inside the worktree**
 
-### Step 1: Spec Directory Setup
+### Step 1: Define Spec Directory Name
 
-Analyze the task and identify/create an appropriate spec directory:
+Analyze the task and define an appropriate spec directory name (do NOT create yet):
 
 1. **Check for existing specs**: Search `specification/` for directories matching the current task
    - If a relevant spec exists: reuse it (confirm with user if multiple matches)
-   - If no match exists: create a new spec directory
+   - If no match exists: define a new spec directory name
 
-2. **New spec directory naming**: `[spec-index]-[spec-name]/`
+2. **New spec directory naming**: `[spec-index]-[spec-name]`
    - `spec-index`: Next sequential number (01, 02, 03, ...)
    - `spec-name`: Kebab-case descriptor (e.g., `user-auth`, `payment-integration`, `fix-login-bug`)
 
-3. **Create spec directory structure**:
-   ```bash
-   mkdir -p "specification/[spec-index]-[spec-name]"
-   ```
+3. **Store the defined name**: Remember the spec directory name for the next steps
+   - Example: `01-user-auth`, `05-payment-processing`
 
 ### Step 2: Git Worktree Creation
 
 **CRITICAL:** ALL development work MUST be done in a git worktree for isolation.
 
-After creating/identifying the spec directory, create a matching git worktree:
+After defining the spec directory name, create a matching git worktree:
 
-1. **Worktree location**: `.worktree/[spec-name]/` in project root
+1. **Worktree location**: `.worktree/` in project root
    - **DEFAULT**: `.worktree/` in project root (no confirmation required)
    - Worktree name matches spec directory name: `[spec-index]-[spec-name]`
 
@@ -265,7 +264,16 @@ After creating/identifying the spec directory, create a matching git worktree:
    cd .worktree/[spec-index]-[spec-name]
    ```
 
-5. **Create workflow-tracking.json** in specification root directory (NOT in sub spec directory):
+### Step 3: Create Spec Directory Inside Worktree
+
+**IMPORTANT:** The spec directory is now created INSIDE the worktree for proper isolation.
+
+1. **Create spec directory structure**:
+   ```bash
+   mkdir -p "specification/[spec-index]-[spec-name]"
+   ```
+
+2. **Create workflow-tracking.json** in the specification root directory (inside worktree):
    ```bash
    # File location: specification/[spec-index]-[spec-name]-workflow-tracking.json
    # IMPORTANT: Create this file in the root of specification/ directory
@@ -288,9 +296,10 @@ After creating/identifying the spec directory, create a matching git worktree:
 ### Verification Checklist
 
 Before proceeding to Phase 2, verify:
-- [ ] Spec directory exists: `specification/[spec-index]-[spec-name]/`
+- [ ] Spec directory defined: `[spec-index]-[spec-name]`
 - [ ] Git worktree exists: `.worktree/[spec-index]-[spec-name]/`
 - [ ] Currently in the created worktree (check with `git worktree list`)
+- [ ] Spec directory created inside worktree: `specification/[spec-index]-[spec-name]/`
 - [ ] `specification/[spec-index]-[spec-name]-workflow-tracking.json` created in specification root (NOT in sub spec directory)
 
 ---
