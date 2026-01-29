@@ -665,21 +665,29 @@ Coordinator ensures:
    - `specDirectory`: The spec directory (e.g., `specification/01-user-auth/`)
    - `featureName`: The feature/fix name
 
-2. **Stage all changes**: `git add [files]` (only files modified in this session)
+2. **Stage ALL spec directory contents AND tracking file**:
+   ```bash
+   # Stage everything in the spec directory (all documents)
+   git add specification/[spec-index]-[spec-name]/
 
-3. **Generate commit message**:
-   - Use the `generating-commit-messages` skill (MANDATORY per CLAUDE.md)
-   - **Include spec info in commit title**: Prefix the title with `[spec-XX]` if changes are related to a spec
-   - Format: `[spec-XX] <type>: <description>` or `<type>: <description>` if not spec-related
-   - Example: `[spec-01] feat: implement user authentication`
+   # Stage the workflow tracking JSON (in worktree, with spec dir)
+   git add specification/[spec-index]-[spec-name]-workflow-tracking.json
+
+   # Stage any code changes if outside spec dir
+   git add [other-files]
+   ```
+
+3. **Generate commit message** (using `generating-commit-messages` skill):
+   - Prefix with `[spec-XX]` if spec-related
+   - Format: `[spec-XX] <type>: <description>`
 
 4. **Commit**: `git commit -m "<commit message>"`
 
-5. **Switch to main branch**: `git checkout main` (from main repo, not worktree)
+5. **Switch to main branch**: `git checkout main` (from main repo)
 
 6. **Merge worktree branch**: `git merge [spec-index]-[spec-name]`
 
-7. **Clean up worktree**: `git worktree remove .worktree/[spec-index]-[spec-name]` (optional, after successful merge)
+7. **Clean up worktree** (optional): `git worktree remove .worktree/[spec-index]-[spec-name]`
 
 **CRITICAL REQUIREMENT:** When ALL tasks are complete, you MUST complete the merge to main.
 

@@ -180,12 +180,13 @@ Task("Update all documentation", {execution_results, qa_results, code_review, ta
 
 **MANDATORY: Commit and Merge to Main**
 1. Read workflow JSON for specDirectory and featureName
-2. Stage changes: `git add [files]` (only files modified this session)
-3. Generate commit message: Use `generating-commit-messages` skill, prefix with `[spec-XX]` if spec-related
-4. Commit: `git commit -m "<message>"`
-5. Switch to main: `git checkout main` (from main repo)
-6. Merge: `git merge [spec-index]-[spec-name]`
-7. Verify: `git status` shows "working tree clean"
+2. Stage ALL spec directory contents AND tracking file: `git add specification/[spec-index]-[spec-name]/` and `git add specification/[spec-index]-[spec-name]-workflow-tracking.json` (in worktree)
+3. Stage any code changes if outside spec dir
+4. Generate commit message: Use `generating-commit-messages` skill, prefix with `[spec-XX]` if spec-related
+5. Commit: `git commit -m "<message>"`
+6. Switch to main: `git checkout main` (from main repo)
+7. Merge: `git merge [spec-index]-[spec-name]`
+8. Verify: `git status` shows "working tree clean"
 
 **NEVER mark complete without merging to main.**
 
