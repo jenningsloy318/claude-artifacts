@@ -212,9 +212,10 @@ Establishes coding standards, git practices, and quality standards.
 
 ---
 
-## Phase 1: Specification Setup
+## Phase 1: Specification Setup (MANDATORY Enforcement)
 
-**IMPORTANT:** This phase performs setup tasks in a specific order to ensure proper isolation:
+**CRITICAL:** This phase MUST be executed in the EXACT order specified. NO shortcuts, NO skipping steps.
+**Spec directory MUST be created INSIDE worktree, NOT in the main repo.**
 
 1. **Define spec directory name** (do not create yet)
 2. **Create git worktree** for isolation
@@ -273,11 +274,10 @@ After defining the spec directory name, create a matching git worktree:
    mkdir -p "specification/[spec-index]-[spec-name]"
    ```
 
-2. **Create workflow-tracking.json** in the specification root directory (inside worktree):
+2. **Create workflow-tracking.json** in the spec directory (inside worktree):
    ```bash
-   # File location: specification/[spec-index]-[spec-name]-workflow-tracking.json
-   # IMPORTANT: Create this file in the root of specification/ directory
-   # DO NOT create another copy inside specification/[spec-index]-[spec-name]/
+   # File location: specification/[spec-index]-[spec-name]/[spec-index]-[spec-name]-workflow-tracking.json
+   # IMPORTANT: Create this file in the spec directory inside the worktree
    ```
    ```json
    {
@@ -293,6 +293,16 @@ After defining the spec directory name, create a matching git worktree:
 - **Already in a worktree**: Verify the current worktree matches the spec directory. If not, navigate to correct worktree automatically.
 - **Not in worktree after Phase 1**: WARNING: All subsequent phases should be run in the created worktree.
 
+### Forbidden Patterns (NEVER do these in Phase 1)
+
+```
+❌ Creating spec directory in main repo (must be in worktree)
+❌ Creating worktree without creating spec dir inside it
+❌ Skipping worktree creation
+❌ Creating spec dir before worktree
+❌ Creating workflow tracking JSON in main repo (must be in worktree with spec dir)
+```
+
 ### Verification Checklist
 
 Before proceeding to Phase 2, verify:
@@ -300,7 +310,7 @@ Before proceeding to Phase 2, verify:
 - [ ] Git worktree exists: `.worktree/[spec-index]-[spec-name]/`
 - [ ] Currently in the created worktree (check with `git worktree list`)
 - [ ] Spec directory created inside worktree: `specification/[spec-index]-[spec-name]/`
-- [ ] `specification/[spec-index]-[spec-name]-workflow-tracking.json` created in specification root (NOT in sub spec directory)
+- [ ] `specification/[spec-index]-[spec-name]/[spec-index]-[spec-name]-workflow-tracking.json` created in worktree (with spec dir)
 
 ---
 
@@ -651,7 +661,7 @@ Coordinator ensures:
 **Worktree Workflow:** Since development happens in isolated worktrees, changes are merged back to main branch rather than pushed.
 
 **Process:**
-1. **Read spec information**: Read `specification/[spec-index]-[spec-name]-workflow-tracking.json` to get:
+1. **Read spec information**: Read `.worktree/[spec-index]-[spec-name]/specification/[spec-index]-[spec-name]/[spec-index]-[spec-name]-workflow-tracking.json` to get:
    - `specDirectory`: The spec directory (e.g., `specification/01-user-auth/`)
    - `featureName`: The feature/fix name
 
